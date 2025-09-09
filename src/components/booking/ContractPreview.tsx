@@ -15,6 +15,14 @@ import { storage } from '../../utils/firebaseClient';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import PaymentModal from './PaymentModal';
 
+function parseBRL(value: string): number {
+  if (!value) return 0;
+  const cleaned = String(value).replace(/[^0-9.,-]/g, '').replace(/\.(?=\d{3}(\D|$))/g, '');
+  const normalized = cleaned.includes(',') ? cleaned.replace(/\./g, '').replace(',', '.') : cleaned.replace(/\./g, '');
+  const num = parseFloat(normalized);
+  return isNaN(num) ? 0 : num;
+}
+
 interface ContractPreviewProps {
   data: BookingFormData;
   onConfirm: () => void;
