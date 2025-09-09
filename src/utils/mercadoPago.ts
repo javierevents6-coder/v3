@@ -104,6 +104,7 @@ export class MercadoPagoService {
         notification_url: `${this.baseUrl}/api/mercadopago/webhook`
       };
 
+      const token = (typeof window !== 'undefined') ? localStorage.getItem('mp_access_token') : '';
       const response = await fetch('/api/mercadopago/create-preference', {
         method: 'POST',
         headers: {
@@ -111,7 +112,8 @@ export class MercadoPagoService {
         },
         body: JSON.stringify({
           preference,
-          bookingData
+          bookingData,
+          accessToken: token || undefined,
         }),
       });
 
