@@ -470,14 +470,9 @@ const BookingForm: React.FC<BookingFormProps> = ({ initialData, packages, onSubm
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Horário *
                         </label>
-                        <input
-                          type="time"
-                          name={`time_${index}`}
+                        <TimePicker24
                           value={formData[`time_${index}`] || ''}
-                          onChange={(e) => setFormData(prev => ({ ...prev, [`time_${index}`]: e.target.value }))}
-                          className={`input-base focus:outline-none focus:ring-2 focus:ring-secondary ${
-                            errors[`time_${index}`] ? 'border-red-500' : 'border-gray-300'
-                          }`}
+                          onChange={(val) => setFormData(prev => ({ ...prev, [`time_${index}`]: val }))}
                         />
                         {errors[`time_${index}`] && <p className="text-red-500 text-sm mt-1">{errors[`time_${index}`]}</p>}
                       </div>
