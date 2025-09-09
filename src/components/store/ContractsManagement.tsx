@@ -3,12 +3,16 @@ import { db } from '../../utils/firebaseClient';
 import { collection, deleteDoc, doc, getDocs, orderBy, query, updateDoc } from 'firebase/firestore';
 import { ChevronDown, ChevronUp, CheckCircle, Clock, FileText, Loader, Mail, MapPin, Phone, Settings, Trash2, User, DollarSign, Link as LinkIcon, Calendar, Pencil } from 'lucide-react';
 
+interface WorkflowTask { id: string; title: string; done: boolean; due?: string | null; note?: string }
+interface WorkflowCategory { id: string; name: string; tasks: WorkflowTask[] }
+
 interface ContractItem {
   id: string;
   clientName: string;
   clientEmail: string;
   eventType?: string;
   eventDate?: string;
+  eventTime?: string;
   contractDate?: string;
   totalAmount?: number;
   travelFee?: number;
@@ -21,6 +25,8 @@ interface ContractItem {
   message?: string;
   createdAt?: string;
   pdfUrl?: string;
+  workflow?: WorkflowCategory[];
+  reminders?: { type: 'finalPayment'; sendAt: string }[];
 }
 
 const ContractsManagement = () => {
