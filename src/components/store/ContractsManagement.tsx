@@ -137,6 +137,35 @@ const ContractsManagement = () => {
     await fetchContracts();
   };
 
+  const openView = (c: ContractItem) => {
+    const ensure = (c.workflow && c.workflow.length) ? c.workflow : defaultWorkflow(c);
+    setViewing(c);
+    setWorkflow(JSON.parse(JSON.stringify(ensure)));
+  };
+
+  const saveWorkflow = async () => {
+    if (!viewing || !workflow) return;
+    setSavingWf(true);
+    try {
+      await updateDoc(doc(db, 'contracts', viewing.id), { workflow } as any);
+      await fetchContracts();
+    } finally {
+      setSavingWf(false);
+    }
+  };
+
+  const scheduleFinalPaymentEmail = async () => {
+    if (!viewing) return;
+    const dateStr = viewing.eventDate || '';
+    const timeStr = viewing.eventTime || (viewing as any).eventTime || '00:00';
+    const dt = new Date(`${dateStr}T${timeStr}`);
+    if (isNaN(dt.getTime())) return;
+    const sendAt = new Date(dt.getTime() - 30 * 60000).toISOString();
+    const nextRem = [ ...(viewing.reminders || []).filter(r => r.type !== 'finalPayment'), { type: 'finalPayment' as const, sendAt } ];
+    await updateDoc(doc(db, 'contracts', viewing.id), { reminders: nextRem } as any);
+    await fetchContracts();
+  };
+
   const remove = async (id: string) => {
     if (!confirm('¿Eliminar este contrato?')) return;
     await deleteDoc(doc(db, 'contracts', id));
