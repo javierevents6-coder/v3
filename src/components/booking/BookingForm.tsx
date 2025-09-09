@@ -163,10 +163,13 @@ const BookingForm: React.FC<BookingFormProps> = ({ initialData, packages, onSubm
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: name === 'travelCost' ? Number(value) || 0 : value
-    }));
+    let v: any = value;
+    if (name === 'cpf') v = formatCPF(value);
+    else if (name === 'rg') v = formatRG(value);
+    else if (name === 'phone') v = formatPhoneBR(value);
+    else if (name === 'email') v = value.toLowerCase();
+    else if (name === 'travelCost') v = Number(value) || 0;
+    setFormData(prev => ({ ...prev, [name]: v }));
   };
 
   const getCurrentDateTime = () => {
