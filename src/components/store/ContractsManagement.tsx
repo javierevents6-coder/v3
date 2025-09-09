@@ -36,6 +36,9 @@ const ContractsManagement = () => {
   const [search, setSearch] = useState('');
   const [editing, setEditing] = useState<ContractItem | null>(null);
   const [editForm, setEditForm] = useState<any>({});
+  const [viewing, setViewing] = useState<ContractItem | null>(null);
+  const [workflow, setWorkflow] = useState<WorkflowCategory[] | null>(null);
+  const [savingWf, setSavingWf] = useState(false);
 
   const fetchContracts = async () => {
     setLoading(true);
