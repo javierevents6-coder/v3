@@ -140,6 +140,7 @@ const AdminStorePage: React.FC = () => {
           {adminView === 'orders' && <OrdersManagement />}
           {adminView === 'contracts' && <ContractsManagement />}
           {adminView === 'packages' && <PhotoPackagesManagement />}
+          {adminView === 'settings' && <StoreSettings />}
         </div>
 
         {adminFullscreen && (
@@ -213,7 +214,8 @@ const AdminStorePage: React.FC = () => {
               {adminView === 'orders' && <OrdersManagement />}
               {adminView === 'contracts' && <ContractsManagement />}
               {adminView === 'packages' && <PhotoPackagesManagement />}
-            </div>
+          {adminView === 'settings' && <StoreSettings />}
+        </div>
           </div>
         )}
 
