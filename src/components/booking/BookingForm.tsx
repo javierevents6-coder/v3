@@ -6,6 +6,114 @@ import DressSelector from './DressSelector';
 import BookingCart from './BookingCart';
 import { Check } from 'lucide-react';
 
+// Helpers for BR formatting/validation
+function onlyDigits(s: string) { return s.replace(/\D/g, ''); }
+function formatCPF(value: string) {
+  const v = onlyDigits(value).slice(0, 11);
+  const part = [v.slice(0,3), v.slice(3,6), v.slice(6,9), v.slice(9,11)];
+  return [part[0], part[1] && `.${part[1]}`, part[2] && `.${part[2]}`, part[3] && `-${part[3]}`].filter(Boolean).join('');
+}
+function validateCPF(value: string) {
+  const v = onlyDigits(value);
+  if (v.length !== 11 || /^(\d)\1{10}$/.test(v)) return false;
+  const calc = (base: string, factor: number) => {
+    let sum = 0; for (let i=0;i<base.length;i++) sum += parseInt(base[i],10) * (factor - i);
+    const rest = (sum * 10) % 11; return rest === 10 ? 0 : rest;
+  };
+  const d1 = calc(v.slice(0,9), 10);
+  const d2 = calc(v.slice(0,10), 11);
+  return d1 === parseInt(v[9],10) && d2 === parseInt(v[10],10);
+}
+function formatRG(value: string) {
+  const v = onlyDigits(value).slice(0, 9);
+  const part = [v.slice(0,2), v.slice(2,5), v.slice(5,8), v.slice(8,9)];
+  return [part[0], part[1] && `.${part[1]}`, part[2] && `.${part[2]}`, part[3] && `-${part[3]}`].filter(Boolean).join('');
+}
+function validateRG(value: string) {
+  const v = onlyDigits(value);
+  return v.length >= 8 && v.length <= 10; // RG formats vary by state; basic sanity
+}
+function formatPhoneBR(value: string) {
+  const v = onlyDigits(value).slice(0, 11);
+  if (v.length <= 10) {
+    // (AA) NNNN-NNNN
+    const p = [v.slice(0,2), v.slice(2,6), v.slice(6,10)];
+    return [p[0] && `(${p[0]})`, p[1], p[2] && `-${p[2]}`].filter(Boolean).join(' ');
+  }
+  const p = [v.slice(0,2), v.slice(2,7), v.slice(7,11)];
+  return [p[0] && `(${p[0]})`, p[1], p[2] && `-${p[2]}`].filter(Boolean).join(' ');
+}
+function validatePhoneBR(value: string) {
+  const v = onlyDigits(value);
+  return v.length === 10 || v.length === 11;
+}
+function validateEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value.toLowerCase());
+}
+
+// Simple DatePicker
+const DatePicker: React.FC<{ value: string; onChange: (val: string) => void; min?: string }>=({ value, onChange, min })=>{
+  const today = new Date();
+  const [view, setView] = useState(() => {
+    const d = value ? new Date(value) : today;
+    return { year: d.getFullYear(), month: d.getMonth() };
+  });
+  const first = new Date(view.year, view.month, 1);
+  const startWeekday = (first.getDay() + 6) % 7; // Monday-first
+  const daysInMonth = new Date(view.year, view.month+1, 0).getDate();
+  const minDate = min ? new Date(min) : today;
+  const asStr = (y:number,m:number,d:number)=> `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+
+  const cells: (string|null)[] = Array.from({length: startWeekday}, ()=>null)
+    .concat(Array.from({length: daysInMonth}, (_,i)=>asStr(view.year, view.month, i+1)));
+  const canSelect = (d: string) => new Date(d) >= new Date(minDate.getFullYear(), minDate.getMonth(), minDate.getDate());
+
+  return (
+    <div className="border rounded-md p-3">
+      <div className="flex items-center justify-between mb-2">
+        <button type="button" onClick={()=>setView(v=>({year: v.month===0? v.year-1:v.year, month: v.month===0?11:v.month-1}))} className="px-2 py-1 border rounded">«</button>
+        <div className="font-medium">{new Date(view.year, view.month, 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}</div>
+        <button type="button" onClick={()=>setView(v=>({year: v.month===11? v.year+1:v.year, month: v.month===11?0:v.month+1}))} className="px-2 py-1 border rounded">»</button>
+      </div>
+      <div className="grid grid-cols-7 gap-1 text-center text-xs text-gray-500 mb-1">
+        {['S','T','Q','Q','S','S','D'].map(d=> <div key={d}>{d}</div>)}
+      </div>
+      <div className="grid grid-cols-7 gap-1">
+        {cells.map((d, idx)=> d ? (
+          <button key={idx} type="button" disabled={!canSelect(d)} onClick={()=>onChange(d)}
+            className={`px-2 py-1 text-sm rounded ${value===d? 'bg-primary text-white':'hover:bg-gray-100'} ${!canSelect(d)?'opacity-40 cursor-not-allowed':''}`}>
+            {Number(d.slice(-2))}
+          </button>
+        ) : <div key={idx} />)}
+      </div>
+    </div>
+  );
+};
+
+// Simple 24h Time Picker
+const TimePicker24: React.FC<{ value: string; onChange: (val: string) => void }>=({ value, onChange })=>{
+  const [hour, minute] = (value || '').split(':');
+  const h = Math.min(23, Math.max(0, parseInt(hour||'12', 10)));
+  const m = Math.min(59, Math.max(0, parseInt(minute||'00', 10)));
+  const setH = (hh: number)=> onChange(`${String(hh).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
+  const setM = (mm: number)=> onChange(`${String(h).padStart(2,'0')}:${String(mm).padStart(2,'0')}`);
+  return (
+    <div className="border rounded-md p-3 space-y-3">
+      <div className="text-xs text-gray-600 mb-1">Selecione o horário (24h)</div>
+      <div className="grid grid-cols-6 gap-1">
+        {Array.from({length:24}, (_,i)=> (
+          <button key={i} type="button" onClick={()=>setH(i)} className={`text-xs px-2 py-1 rounded ${h===i? 'bg-primary text-white':'hover:bg-gray-100'}`}>{String(i).padStart(2,'0')}</button>
+        ))}
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="text-xs w-14">Minutos</span>
+        <input type="range" min={0} max={59} step={5} value={m} onChange={(e)=>setM(parseInt(e.target.value,10))} className="flex-1" />
+        <span className="text-sm font-medium w-10 text-right">{String(m).padStart(2,'0')}</span>
+      </div>
+    </div>
+  );
+};
+
 interface BookingFormProps {
   initialData: BookingFormData;
   packages: any[];
