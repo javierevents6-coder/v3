@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { X, Calendar, CreditCard, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { googleCalendar } from '../../utils/googleCalendar';
 import { mercadoPago } from '../../utils/mercadoPago';
+import { useFeatureFlags } from '../../contexts/FeatureFlagsContext';
 
 interface PaymentModalProps {
   isOpen: boolean;
