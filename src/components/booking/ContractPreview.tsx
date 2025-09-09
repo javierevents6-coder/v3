@@ -520,6 +520,39 @@ const ContractPreview = ({ data, onConfirm, onBack }: ContractPreviewProps) => {
                 </div>
               )}
 
+              {/* Entrega */}
+              {(() => {
+                const hasServices = Boolean(data.cartItems && data.cartItems.length);
+                const hasStore = Boolean(data.storeItems && data.storeItems.length);
+                const getPackageDeliveryDays = (): number | null => {
+                  if (!selectedPackage) return null;
+                  const feat = (selectedPackage.features || []).find(f => /Entrega em\s+\d+\s+dias/i.test(f));
+                  if (!feat) return null;
+                  const m = feat.match(/Entrega em\s+(\d+)\s+dias/i);
+                  return m ? parseInt(m[1], 10) : null;
+                };
+                const pkgDays = getPackageDeliveryDays();
+                return (hasServices || hasStore) ? (
+                  <div className="mb-8">
+                    <h3 className="text-lg font-medium text-primary mb-4 pb-2 border-b border-secondary">ENTREGA</h3>
+                    <div className="bg-gray-50 p-6 rounded-lg">
+                      <div className="space-y-2 text-sm text-gray-700">
+                        {hasServices && (
+                          <p>
+                            <strong>Fotos digitais:</strong> {pkgDays ?? 15} dias úteis
+                          </p>
+                        )}
+                        {hasStore && (
+                          <p>
+                            <strong>Material físico:</strong> 30 dias úteis
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ) : null;
+              })()}
+
               {/* Financial Terms */}
               <div className="mb-8">
                 <h3 className="text-lg font-medium text-primary mb-4 pb-2 border-b border-secondary">
