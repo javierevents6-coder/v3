@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, Calendar, CreditCard, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { googleCalendar } from '../../utils/googleCalendar';
 import { mercadoPago } from '../../utils/mercadoPago';
