@@ -3,6 +3,7 @@ import AdminStoreDashboard from '../components/store/AdminStoreDashboard';
 import OrdersManagement from '../components/store/OrdersManagement';
 import ContractsManagement from '../components/store/ContractsManagement';
 import PhotoPackagesManagement from '../components/store/PhotoPackagesManagement';
+import StoreSettings from '../components/store/StoreSettings';
 import ProductEditorModal from '../components/store/ProductEditorModal';
 import { db } from '../utils/firebaseClient';
 import { collection, getDocs, deleteDoc, doc, updateDoc, orderBy, query } from 'firebase/firestore';
