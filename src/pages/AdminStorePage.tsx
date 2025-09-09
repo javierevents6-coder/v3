@@ -9,7 +9,7 @@ import { collection, getDocs, deleteDoc, doc, updateDoc, orderBy, query } from '
 import { Trash2 } from 'lucide-react';
 
 const AdminStorePage: React.FC = () => {
-  const [adminView, setAdminView] = useState<'dashboard' | 'products' | 'orders' | 'contracts' | 'packages'>('dashboard');
+  const [adminView, setAdminView] = useState<'dashboard' | 'products' | 'orders' | 'contracts' | 'packages' | 'settings'>('dashboard');
   const [adminFullscreen, setAdminFullscreen] = useState(false);
 
   // products state copied from StorePage
