@@ -458,15 +458,10 @@ const BookingForm: React.FC<BookingFormProps> = ({ initialData, packages, onSubm
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Data *
                         </label>
-                        <input
-                          type="date"
-                          name={`date_${index}`}
+                        <DatePicker
                           value={formData[`date_${index}`] || ''}
-                          onChange={(e) => setFormData(prev => ({ ...prev, [`date_${index}`]: e.target.value }))}
+                          onChange={(val) => setFormData(prev => ({ ...prev, [`date_${index}`]: val }))}
                           min={getCurrentDateTime().date}
-                          className={`input-base focus:outline-none focus:ring-2 focus:ring-secondary ${
-                            errors[`date_${index}`] ? 'border-red-500' : 'border-gray-300'
-                          }`}
                         />
                         {errors[`date_${index}`] && <p className="text-red-500 text-sm mt-1">{errors[`date_${index}`]}</p>}
                       </div>
