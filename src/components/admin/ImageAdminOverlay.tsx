@@ -141,7 +141,6 @@ export function initImageAdminOverlay() {
   if (active) return;
   // Require authenticated user
   if (!auth || !auth.currentUser) {
-    alert('Para activar el modo administrador y subir imágenes debes iniciar sesión en la aplicación.');
     return;
   }
 
