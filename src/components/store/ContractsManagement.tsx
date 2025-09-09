@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { db } from '../../utils/firebaseClient';
 import { collection, deleteDoc, doc, getDocs, orderBy, query, updateDoc } from 'firebase/firestore';
 import { ChevronDown, ChevronUp, CheckCircle, Clock, FileText, Loader, Mail, MapPin, Phone, Settings, Trash2, User, DollarSign, Link as LinkIcon, Calendar, Pencil } from 'lucide-react';
+import { defaultWorkflow } from './_contractsWorkflowHelper';
 
 interface WorkflowTask { id: string; title: string; done: boolean; due?: string | null; note?: string }
 interface WorkflowCategory { id: string; name: string; tasks: WorkflowTask[] }
