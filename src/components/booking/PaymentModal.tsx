@@ -12,7 +12,9 @@ interface PaymentModalProps {
 }
 
 const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, bookingData, onSuccess }) => {
-  const [step, setStep] = useState<'payment' | 'calendar' | 'success'>('payment');
+  const { flags } = useFeatureFlags();
+  const paymentDisabled = flags.payments?.mpEnabled === false;
+  const [step, setStep] = useState<'payment' | 'calendar' | 'success'>(paymentDisabled ? 'calendar' : 'payment');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [calendarEvent, setCalendarEvent] = useState<any>(null);
