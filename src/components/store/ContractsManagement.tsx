@@ -202,144 +202,33 @@ const ContractsManagement = () => {
         {loading && <div className="p-4 text-sm text-gray-500">Cargando...</div>}
         {!loading && filtered.length === 0 && <div className="p-4 text-sm text-gray-500">Sin resultados</div>}
         <div className="divide-y">
-          {filtered.map(c => (
-            <div key={c.id} className={`grid grid-cols-12 p-3 items-center ${c.eventCompleted ? 'bg-green-50 text-green-800' : ''} ${(!c.eventCompleted && isPast(c)) ? 'text-red-600' : ''}`}>
-              <div className="col-span-1">
-                <button onClick={() => setExpanded(e => ({ ...e, [c.id]: !e[c.id] }))} className="border-2 border-black text-black px-2 py-1 rounded-none hover:bg-black hover:text-white inline-flex items-center">
-                  {expanded[c.id] ? <ChevronUp size={14}/> : <ChevronDown size={14}/>}
-                </button>
-              </div>
-              <div className="col-span-3 lowercase first-letter:uppercase">{c.clientName || 'cliente'}</div>
-              <div className="col-span-3 text-sm">{c.eventDate || '-'}</div>
-              <div className="col-span-1 text-sm">{(c as any).eventTime || '-'}</div>
-              <div className="col-span-2 font-semibold">R$ {Number(c.totalAmount || 0).toFixed(2)}</div>
-              <div className="col-span-1 font-semibold">R$ {(() => {
-                const form = (c as any).formSnapshot || {};
-                const servicesEffective = Array.isArray(c.services)
-                  ? c.services.reduce((sum, it: any, idx: number) => {
-                      const price = Number(String(it.price || '').replace(/[^0-9]/g, ''));
-                      const qty = Number(it.quantity || 1);
-                      const coupon = form[`discountCoupon_${idx}`];
-                      const isFree = coupon === 'FREE' && it.id && String(it.id).includes('prewedding') && !String(it.id).includes('teaser');
-                      if (isFree) return sum;
-                      return sum + price * qty;
-                    }, 0) + Number(c.travelFee || 0)
-                  : Number(c.travelFee || 0);
-                const storeItemsTotal = Array.isArray(c.storeItems)
-                  ? c.storeItems.reduce((sum, it: any) => sum + (Number(it.price || 0) * Number(it.quantity || 1)), 0)
-                  : 0;
-                const total = Number(c.totalAmount || 0);
-                const hasServices = Array.isArray(c.services) && c.services.length > 0;
-                const deposit = hasServices
-                  ? Math.ceil(servicesEffective * 0.2 + storeItemsTotal * 0.5)
-                  : Math.ceil(total * 0.5);
-                return Math.max(0, total - deposit).toFixed(2);
-              })()}</div>
-              <div className="col-span-1 text-right">
-                <div className="inline-flex items-center gap-2">
-                  {c.pdfUrl && (
-                    <a href={c.pdfUrl} target="_blank" rel="noopener noreferrer" title="Ver PDF" className="border-2 border-black text-black px-2 py-1 rounded-none hover:bg-black hover:text-white inline-flex items-center">
-                      <LinkIcon size={14} />
-                    </a>
-                  )}
-                  <button onClick={() => toggleFlag(c.id, 'eventCompleted')} className={`px-2 py-1 text-xs border-2 rounded-none ${c.eventCompleted ? 'bg-green-600 text-white border-green-600 hover:bg-green-700' : 'border-black text-black hover:bg-black hover:text-white'}`}>Completado</button>
-                  <button onClick={() => remove(c.id)} title="Eliminar" className="border-2 border-black text-black px-2 py-1 rounded-none hover:bg-black hover:text-white inline-flex items-center"><Trash2 size={14}/></button>
-                </div>
-              </div>
-              {expanded[c.id] && (
-                <div className="col-span-12 mt-3">
-                  <div className="border rounded-lg p-3 bg-gray-50">
-                    <div className="flex items-center justify-end gap-2 mb-3">
-                      <button onClick={() => openEdit(c)} title="Modificar" className="border-2 border-black text-black px-2 py-1 rounded-none hover:bg-black hover:text-white inline-flex items-center">
-                        <Pencil size={14} />
-                      </button>
-                      <button onClick={() => remove(c.id)} title="Eliminar" className="border-2 border-black text-black px-2 py-1 rounded-none hover:bg-black hover:text-white inline-flex items-center">
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-                      <div className="flex items-center gap-2"><Phone size={14} className="text-gray-600"/><span>{c.formSnapshot?.phone || '-'}</span></div>
-                      <div className="flex items-center gap-2"><MapPin size={14} className="text-gray-600"/><span>{c.formSnapshot?.address || '-'}</span></div>
-                      <div className="flex items-center gap-2"><FileText size={14} className="text-gray-600"/><span>{c.eventType || '-'}</span></div>
-                    </div>
-
-                    <div className="mt-3">
-                      <div className="text-xs font-medium mb-2 flex items-center gap-2"><FileText size={14}/> Serviços</div>
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                          <thead>
-                            <tr className="text-left text-gray-600">
-                              <th className="py-1">Item</th>
-                              <th className="py-1">Cant.</th>
-                              <th className="py-1">Precio</th>
-                              <th className="py-1">Total</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {(c.services || []).map((it: any, idx: number) => {
-                              const qty = Number(it.quantity ?? 1);
-                              const price = Number(String(it.price || '').replace(/[^0-9]/g, ''));
-                              const total = price * qty;
-                              return (
-                                <tr key={idx} className="border-t">
-                                  <td className="py-1">{it.name || it.id || '—'}</td>
-                                  <td className="py-1">{qty}</td>
-                                  <td className="py-1">R$ {price.toFixed(2)}</td>
-                                  <td className="py-1">R$ {total.toFixed(2)}</td>
-                                </tr>
-                              );
-                            })}
-                            {Array.isArray(c.storeItems) && c.storeItems.map((it: any, idx: number) => (
-                              <tr key={`store-${idx}`} className="border-t">
-                                <td className="py-1">{it.name}</td>
-                                <td className="py-1">{Number(it.quantity)}</td>
-                                <td className="py-1">R$ {Number(it.price).toFixed(2)}</td>
-                                <td className="py-1">R$ {(Number(it.price) * Number(it.quantity)).toFixed(2)}</td>
-                              </tr>
-                            ))}
-                            {Number(c.travelFee || 0) > 0 && (
-                              <tr className="border-t">
-                                <td className="py-1">Deslocamento</td>
-                                <td className="py-1">1</td>
-                                <td className="py-1">R$ {Number(c.travelFee).toFixed(2)}</td>
-                                <td className="py-1">R$ {Number(c.travelFee).toFixed(2)}</td>
-                              </tr>
-                            )}
-                            {!((c.services && c.services.length) || (c.storeItems && c.storeItems.length) || Number(c.travelFee || 0) > 0) && (
-                              <tr className="border-t"><td className="py-2 text-gray-500" colSpan={4}>Sin items</td></tr>
-                            )}
-                          </tbody>
-                        </table>
+          {filtered.map(c => {
+            const wf = (c.workflow && c.workflow.length) ? c.workflow : defaultWorkflow(c);
+            const segments = wf.map(cat => {
+              const total = cat.tasks.length || 1;
+              const done = cat.tasks.filter(t => t.done).length;
+              return total === 0 ? 0 : Math.round((done/total)*100);
+            });
+            return (
+              <div key={c.id} className="grid grid-cols-12 p-3 items-center hover:bg-gray-50 cursor-pointer" onClick={() => openView(c)}>
+                <div className="col-span-3 text-sm">{c.eventDate || '-'}</div>
+                <div className="col-span-3 lowercase first-letter:uppercase">{c.clientName || 'Trabajo'}</div>
+                <div className="col-span-2 text-sm">{c.eventType || '-'}</div>
+                <div className="col-span-3">
+                  <div className="w-full h-3 rounded bg-gray-200 overflow-hidden flex">
+                    {segments.map((p, i) => (
+                      <div key={i} className="relative flex-1 bg-gray-200">
+                        <div className="absolute inset-y-0 left-0 bg-green-500" style={{ width: `${p}%` }} />
                       </div>
-                      <div className="mt-2 flex justify-end">
-                        <div className="text-sm font-semibold text-green-700">
-                          Total: R$ {(() => {
-                            const servicesTotal = (c.services || []).reduce((sum: number, it: any) => {
-                              const qty = Number(it.quantity ?? 1);
-                              const price = Number(String(it.price || '').replace(/[^0-9]/g, ''));
-                              return sum + price * qty;
-                            }, 0);
-                            const storeTotal = Array.isArray(c.storeItems)
-                              ? c.storeItems.reduce((sum: number, it: any) => sum + (Number(it.price || 0) * Number(it.quantity || 1)), 0)
-                              : 0;
-                            const travel = Number(c.travelFee || 0);
-                            return (servicesTotal + storeTotal + travel).toFixed(2);
-                          })()}
-                        </div>
-                      </div>
-                    </div>
-
-                    {c.message && (
-                      <div className="mt-3 text-sm text-gray-700">
-                        <div className="text-xs font-medium mb-1">Notas</div>
-                        <div className="whitespace-pre-line">{c.message}</div>
-                      </div>
-                    )}
+                    ))}
                   </div>
                 </div>
-              )}
-            </div>
-          ))}
+                <div className="col-span-1 text-right">
+                  <button onClick={(e)=>{e.stopPropagation(); openEdit(c);}} title="Editar" className="border-2 border-black text-black px-2 py-1 rounded-none hover:bg-black hover:text-white inline-flex items-center"><Pencil size={14}/></button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     {editing && (
