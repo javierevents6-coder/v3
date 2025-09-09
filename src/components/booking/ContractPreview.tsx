@@ -15,6 +15,14 @@ import { storage } from '../../utils/firebaseClient';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import PaymentModal from './PaymentModal';
 
+function parseBRL(value: string): number {
+  if (!value) return 0;
+  const cleaned = String(value).replace(/[^0-9.,-]/g, '').replace(/\.(?=\d{3}(\D|$))/g, '');
+  const normalized = cleaned.includes(',') ? cleaned.replace(/\./g, '').replace(',', '.') : cleaned.replace(/\./g, '');
+  const num = parseFloat(normalized);
+  return isNaN(num) ? 0 : num;
+}
+
 interface ContractPreviewProps {
   data: BookingFormData;
   onConfirm: () => void;
@@ -132,7 +140,7 @@ const ContractPreview = ({ data, onConfirm, onBack }: ContractPreviewProps) => {
   const calculateTotal = () => {
     // Calculate items total considering coupon discounts (handles empty services)
     const itemsTotal = (data.cartItems || []).reduce((sum, item, index) => {
-      const itemPrice = Number(item.price.replace(/[^0-9]/g, ''));
+      const itemPrice = parseBRL(item.price);
       const itemTotal = itemPrice * item.quantity;
       const coupon = data[`discountCoupon_${index}`];
 
@@ -155,7 +163,7 @@ const ContractPreview = ({ data, onConfirm, onBack }: ContractPreviewProps) => {
     const couponDiscount = (data.cartItems || []).reduce((sum, item, index) => {
       const coupon = data[`discountCoupon_${index}`];
       if (coupon === 'FREE' && item.id && item.id.includes('prewedding') && !item.id.includes('teaser')) {
-        const itemPrice = Number(item.price.replace(/[^0-9]/g, ''));
+        const itemPrice = parseBRL(item.price);
         return sum + (itemPrice * item.quantity);
       }
       return sum;
@@ -163,7 +171,7 @@ const ContractPreview = ({ data, onConfirm, onBack }: ContractPreviewProps) => {
 
     // Calculate original subtotal for payment discount calculation
     const originalSubtotal = (data.cartItems || []).reduce((sum, item) => {
-      const itemPrice = Number(item.price.replace(/[^0-9]/g, ''));
+      const itemPrice = parseBRL(item.price);
       return sum + (itemPrice * item.quantity);
     }, 0) + storeItemsTotal + (data.travelCost || 0);
 
@@ -191,7 +199,7 @@ const ContractPreview = ({ data, onConfirm, onBack }: ContractPreviewProps) => {
 
     // Calculate effective totals: services (with coupons) + travel, and store items
     const servicesEffective = (data.cartItems || []).reduce((sum, item, index) => {
-      const itemPrice = Number(item.price.replace(/[^0-9]/g, ''));
+      const itemPrice = parseBRL(item.price);
       const itemTotal = itemPrice * item.quantity;
       const coupon = data[`discountCoupon_${index}`];
       if (coupon === 'FREE' && item.id && item.id.includes('prewedding') && !item.id.includes('teaser')) {
@@ -430,7 +438,7 @@ const ContractPreview = ({ data, onConfirm, onBack }: ContractPreviewProps) => {
                     {data.cartItems?.map((item, index) => (
                       <div key={`summary-${index}`} className="flex justify-between items-center">
                         {(() => {
-                          const itemPrice = Number(item.price.replace(/[^0-9]/g, ''));
+                          const itemPrice = parseBRL(item.price);
                           const itemTotal = itemPrice * item.quantity;
                           const coupon = data[`discountCoupon_${index}`];
                           const hasDiscount = coupon === 'FREE' && item.id && item.id.includes('prewedding') && !item.id.includes('teaser');
@@ -512,6 +520,39 @@ const ContractPreview = ({ data, onConfirm, onBack }: ContractPreviewProps) => {
                 </div>
               )}
 
+              {/* Entrega */}
+              {(() => {
+                const hasServices = Boolean(data.cartItems && data.cartItems.length);
+                const hasStore = Boolean(data.storeItems && data.storeItems.length);
+                const getPackageDeliveryDays = (): number | null => {
+                  if (!selectedPackage) return null;
+                  const feat = (selectedPackage.features || []).find(f => /Entrega em\s+\d+\s+dias/i.test(f));
+                  if (!feat) return null;
+                  const m = feat.match(/Entrega em\s+(\d+)\s+dias/i);
+                  return m ? parseInt(m[1], 10) : null;
+                };
+                const pkgDays = getPackageDeliveryDays();
+                return (hasServices || hasStore) ? (
+                  <div className="mb-8">
+                    <h3 className="text-lg font-medium text-primary mb-4 pb-2 border-b border-secondary">ENTREGA</h3>
+                    <div className="bg-gray-50 p-6 rounded-lg">
+                      <div className="space-y-2 text-sm text-gray-700">
+                        {hasServices && (
+                          <p>
+                            <strong>Fotos digitais:</strong> {pkgDays ?? 15} dias úteis
+                          </p>
+                        )}
+                        {hasStore && (
+                          <p>
+                            <strong>Material físico:</strong> 30 dias úteis
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ) : null;
+              })()}
+
               {/* Financial Terms */}
               <div className="mb-8">
                 <h3 className="text-lg font-medium text-primary mb-4 pb-2 border-b border-secondary">
@@ -520,7 +561,7 @@ const ContractPreview = ({ data, onConfirm, onBack }: ContractPreviewProps) => {
                 <div className="bg-gray-50 p-6 rounded-lg">
                   <div className="space-y-4">
                     {data.cartItems?.map((item, index) => {
-                      const itemPrice = Number(item.price.replace(/[^0-9]/g, ''));
+                      const itemPrice = parseBRL(item.price);
                       const itemTotal = itemPrice * item.quantity;
                       const coupon = data[`discountCoupon_${index}`];
                       const hasDiscount = coupon === 'FREE' && item.id && item.id.includes('prewedding') && !item.id.includes('teaser');
@@ -614,7 +655,7 @@ const ContractPreview = ({ data, onConfirm, onBack }: ContractPreviewProps) => {
                       
                       if (appliedCoupons.length > 0) {
                         const couponDiscount = appliedCoupons.reduce((sum, item) => {
-                          const itemPrice = Number(item.price.replace(/[^0-9]/g, ''));
+                          const itemPrice = parseBRL(item.price);
                           return sum + (itemPrice * item.quantity);
                         }, 0);
                         

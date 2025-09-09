@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, Calendar, CreditCard, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { googleCalendar } from '../../utils/googleCalendar';
 import { mercadoPago } from '../../utils/mercadoPago';
+import { useFeatureFlags } from '../../contexts/FeatureFlagsContext';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -11,7 +12,9 @@ interface PaymentModalProps {
 }
 
 const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, bookingData, onSuccess }) => {
-  const [step, setStep] = useState<'payment' | 'calendar' | 'success'>('payment');
+  const { flags } = useFeatureFlags();
+  const paymentDisabled = flags.payments?.mpEnabled === false;
+  const [step, setStep] = useState<'payment' | 'calendar' | 'success'>(paymentDisabled ? 'calendar' : 'payment');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [calendarEvent, setCalendarEvent] = useState<any>(null);
@@ -45,10 +48,21 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, bookingDat
     return { total, deposit, remaining };
   };
 
+  useEffect(() => {
+    if (isOpen && paymentDisabled) {
+      setStep('calendar');
+    }
+  }, [isOpen, paymentDisabled]);
+
   const handlePayment = async () => {
     try {
       setLoading(true);
       setError(null);
+
+      if (paymentDisabled) {
+        setStep('calendar');
+        return;
+      }
 
       if (bookingData.paymentMethod === 'pix' || bookingData.paymentMethod === 'credit') {
         // Use Mercado Pago for PIX and Credit Card

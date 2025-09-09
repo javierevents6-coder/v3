@@ -6,6 +6,9 @@ export type PageKey = 'home' | 'portfolio' | 'portrait' | 'maternity' | 'events'
 
 export interface FeatureFlags {
   pages: Record<PageKey, boolean>;
+  payments?: {
+    mpEnabled: boolean;
+  };
 }
 
 const DEFAULT_FLAGS: FeatureFlags = {
@@ -23,12 +26,16 @@ const DEFAULT_FLAGS: FeatureFlags = {
     packagesAdmin: true,
     clientDashboard: true,
   },
+  payments: {
+    mpEnabled: true,
+  },
 };
 
 interface FeatureFlagsContextType {
   flags: FeatureFlags;
   loading: boolean;
   setPageEnabled: (key: PageKey, value: boolean) => Promise<void>;
+  setPaymentEnabled: (value: boolean) => Promise<void>;
   refresh: () => Promise<void>;
 }
 
@@ -51,6 +58,7 @@ async function readFromFirestore(): Promise<FeatureFlags | null> {
       if (data && typeof data === 'object' && data.pages) {
         return {
           pages: { ...DEFAULT_FLAGS.pages, ...data.pages },
+          payments: { ...DEFAULT_FLAGS.payments, ...(data.payments || {}) },
         } as FeatureFlags;
       }
     }
@@ -71,6 +79,7 @@ function readFromLocalStorage(): FeatureFlags | null {
     if (parsed && parsed.pages) {
       return {
         pages: { ...DEFAULT_FLAGS.pages, ...parsed.pages },
+        payments: { ...DEFAULT_FLAGS.payments, ...(parsed.payments || {}) },
       } as FeatureFlags;
     }
   } catch (_) {}
@@ -110,6 +119,7 @@ export const FeatureFlagsProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const setPageEnabled = async (key: PageKey, value: boolean) => {
     const next: FeatureFlags = {
       pages: { ...flags.pages, [key]: value },
+      payments: { ...DEFAULT_FLAGS.payments, ...(flags.payments || {}) },
     };
     setFlags(next);
     writeToLocalStorage(next);
@@ -120,7 +130,19 @@ export const FeatureFlagsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   };
 
-  const value = useMemo(() => ({ flags, loading, setPageEnabled, refresh: load }), [flags, loading]);
+  const setPaymentEnabled = async (value: boolean) => {
+    const next: FeatureFlags = {
+      pages: { ...flags.pages },
+      payments: { ...DEFAULT_FLAGS.payments, ...(flags.payments || {}), mpEnabled: value },
+    };
+    setFlags(next);
+    writeToLocalStorage(next);
+    try {
+      await writeToFirestore(next);
+    } catch (_) {}
+  };
+
+  const value = useMemo(() => ({ flags, loading, setPageEnabled, setPaymentEnabled, refresh: load }), [flags, loading]);
 
   return (
     <FeatureFlagsContext.Provider value={value}>

@@ -213,22 +213,6 @@ const AdminStoreDashboard: React.FC<AdminProps> = ({ onNavigate }) => {
             </button>
           </div>
 
-          <div className="mt-6 border-t pt-4">
-            <h4 className="font-medium mb-3">Visibilidad de Páginas</h4>
-            <p className="text-sm text-gray-600 mb-3">Habilita o deshabilita páginas para ocultarlas del sitio.</p>
-            <div className="grid grid-cols-1 gap-2">
-              {Object.entries(flags.pages).map(([key, value]) => (
-                <label key={key} className="flex items-center gap-3 border rounded-lg p-2">
-                  <input
-                    type="checkbox"
-                    checked={Boolean(value)}
-                    onChange={(e) => setPageEnabled(key as any, e.target.checked)}
-                  />
-                  <span className="capitalize text-sm">{key.replace(/([A-Z])/g, ' $1').replace(/\s+/g, ' ').trim()}</span>
-                </label>
-              ))}
-            </div>
-          </div>
         </div>
 
         {/* Nearest Contracts */}

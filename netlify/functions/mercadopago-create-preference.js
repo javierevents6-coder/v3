@@ -21,8 +21,8 @@ const handler = async (event, context) => {
   }
 
   try {
-    const { preference, bookingData } = JSON.parse(event.body);
-    const accessToken = process.env.MP_ACCESS_TOKEN;
+    const { preference, bookingData, accessToken: bodyAccessToken } = JSON.parse(event.body);
+    const accessToken = bodyAccessToken || process.env.MP_ACCESS_TOKEN;
 
     if (!accessToken) {
       return {
