@@ -1,6 +1,7 @@
 export interface WorkflowTask { id: string; title: string; done: boolean; due?: string | null; note?: string }
 export interface WorkflowCategory { id: string; name: string; tasks: WorkflowTask[] }
 export interface ContractLike { eventDate?: string; eventTime?: string; depositPaid?: boolean; finalPaymentPaid?: boolean }
+export interface WorkflowTemplate { id: string; name: string; categories: WorkflowCategory[]; createdAt: string; updatedAt: string }
 
 export function defaultWorkflow(c: ContractLike): WorkflowCategory[] {
   const baseDate = c.eventDate ? new Date(c.eventDate) : new Date();
@@ -33,4 +34,32 @@ export function defaultWorkflow(c: ContractLike): WorkflowCategory[] {
       ]
     },
   ];
+}
+
+function hslToHex(h: number, s: number, l: number) {
+  s /= 100; l /= 100;
+  const k = (n: number) => (n + h/30) % 12;
+  const a = s * Math.min(l, 1 - l);
+  const f = (n: number) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+  const toHex = (x: number) => Math.round(255 * x).toString(16).padStart(2, '0');
+  return `#${toHex(f(0))}${toHex(f(8))}${toHex(f(4))}`;
+}
+
+export function categoryColors(count: number): string[] {
+  if (count <= 1) return ['#ef4444'];
+  // Generate colors from red (0) -> yellow (60) -> green (120)
+  const stops = [0, 60, 120];
+  const segments = stops.length - 1; // 2
+  const totalSteps = Math.max(count - 1, 1);
+  const colors: string[] = [];
+  for (let i = 0; i < count; i++) {
+    const t = i / totalSteps; // 0..1
+    const seg = Math.min(Math.floor(t * segments), segments - 1);
+    const segT = (t - seg / segments) * segments;
+    const h = stops[seg] + (stops[seg + 1] - stops[seg]) * segT;
+    const s = 85; // vivid
+    const l = 50; // mid lightness
+    colors.push(hslToHex(h, s, l));
+  }
+  return colors;
 }
