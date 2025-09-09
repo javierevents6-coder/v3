@@ -140,7 +140,7 @@ const ContractPreview = ({ data, onConfirm, onBack }: ContractPreviewProps) => {
   const calculateTotal = () => {
     // Calculate items total considering coupon discounts (handles empty services)
     const itemsTotal = (data.cartItems || []).reduce((sum, item, index) => {
-      const itemPrice = Number(item.price.replace(/[^0-9]/g, ''));
+      const itemPrice = parseBRL(item.price);
       const itemTotal = itemPrice * item.quantity;
       const coupon = data[`discountCoupon_${index}`];
 
@@ -163,7 +163,7 @@ const ContractPreview = ({ data, onConfirm, onBack }: ContractPreviewProps) => {
     const couponDiscount = (data.cartItems || []).reduce((sum, item, index) => {
       const coupon = data[`discountCoupon_${index}`];
       if (coupon === 'FREE' && item.id && item.id.includes('prewedding') && !item.id.includes('teaser')) {
-        const itemPrice = Number(item.price.replace(/[^0-9]/g, ''));
+        const itemPrice = parseBRL(item.price);
         return sum + (itemPrice * item.quantity);
       }
       return sum;
@@ -171,7 +171,7 @@ const ContractPreview = ({ data, onConfirm, onBack }: ContractPreviewProps) => {
 
     // Calculate original subtotal for payment discount calculation
     const originalSubtotal = (data.cartItems || []).reduce((sum, item) => {
-      const itemPrice = Number(item.price.replace(/[^0-9]/g, ''));
+      const itemPrice = parseBRL(item.price);
       return sum + (itemPrice * item.quantity);
     }, 0) + storeItemsTotal + (data.travelCost || 0);
 
@@ -199,7 +199,7 @@ const ContractPreview = ({ data, onConfirm, onBack }: ContractPreviewProps) => {
 
     // Calculate effective totals: services (with coupons) + travel, and store items
     const servicesEffective = (data.cartItems || []).reduce((sum, item, index) => {
-      const itemPrice = Number(item.price.replace(/[^0-9]/g, ''));
+      const itemPrice = parseBRL(item.price);
       const itemTotal = itemPrice * item.quantity;
       const coupon = data[`discountCoupon_${index}`];
       if (coupon === 'FREE' && item.id && item.id.includes('prewedding') && !item.id.includes('teaser')) {
@@ -438,7 +438,7 @@ const ContractPreview = ({ data, onConfirm, onBack }: ContractPreviewProps) => {
                     {data.cartItems?.map((item, index) => (
                       <div key={`summary-${index}`} className="flex justify-between items-center">
                         {(() => {
-                          const itemPrice = Number(item.price.replace(/[^0-9]/g, ''));
+                          const itemPrice = parseBRL(item.price);
                           const itemTotal = itemPrice * item.quantity;
                           const coupon = data[`discountCoupon_${index}`];
                           const hasDiscount = coupon === 'FREE' && item.id && item.id.includes('prewedding') && !item.id.includes('teaser');
@@ -528,7 +528,7 @@ const ContractPreview = ({ data, onConfirm, onBack }: ContractPreviewProps) => {
                 <div className="bg-gray-50 p-6 rounded-lg">
                   <div className="space-y-4">
                     {data.cartItems?.map((item, index) => {
-                      const itemPrice = Number(item.price.replace(/[^0-9]/g, ''));
+                      const itemPrice = parseBRL(item.price);
                       const itemTotal = itemPrice * item.quantity;
                       const coupon = data[`discountCoupon_${index}`];
                       const hasDiscount = coupon === 'FREE' && item.id && item.id.includes('prewedding') && !item.id.includes('teaser');
@@ -622,7 +622,7 @@ const ContractPreview = ({ data, onConfirm, onBack }: ContractPreviewProps) => {
                       
                       if (appliedCoupons.length > 0) {
                         const couponDiscount = appliedCoupons.reduce((sum, item) => {
-                          const itemPrice = Number(item.price.replace(/[^0-9]/g, ''));
+                          const itemPrice = parseBRL(item.price);
                           return sum + (itemPrice * item.quantity);
                         }, 0);
                         
