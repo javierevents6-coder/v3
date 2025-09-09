@@ -231,6 +231,105 @@ const ContractsManagement = () => {
           })}
         </div>
       </div>
+    {viewing && workflow && (
+      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={()=>setViewing(null)}>
+        <div className="bg-white rounded-xl border border-gray-200 w-full max-w-5xl p-0 overflow-hidden" onClick={(e)=>e.stopPropagation()}>
+          <div className="flex items-center justify-between p-4 border-b">
+            <div>
+              <div className="text-lg font-medium">{viewing.clientName} — {viewing.eventType || 'Trabajo'}</div>
+              <div className="text-xs text-gray-500">Fecha principal: {viewing.eventDate || '-' } • Hora: {viewing.eventTime || (viewing as any).eventTime || '-'}</div>
+            </div>
+            <button onClick={()=>setViewing(null)} className="text-gray-500 hover:text-gray-900">✕</button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
+            <div className="md:col-span-1 border-r p-4 max-h-[70vh] overflow-auto">
+              <h3 className="font-medium mb-3">Workflow</h3>
+              <div className="space-y-4">
+                {workflow.map((cat, ci) => (
+                  <div key={cat.id}>
+                    <div className="text-sm font-semibold mb-2">{cat.name}</div>
+                    <div className="space-y-2">
+                      {cat.tasks.map((t, ti) => (
+                        <label key={t.id} className="flex items-start gap-2">
+                          <input type="checkbox" checked={t.done} onChange={(e)=>{
+                            setWorkflow(wf=>{
+                              const next = wf ? [...wf] : [];
+                              next[ci] = { ...next[ci], tasks: next[ci].tasks.map((x, idx)=> idx===ti? { ...x, done: e.target.checked }: x)};
+                              return next;
+                            });
+                          }} />
+                          <div className="flex-1">
+                            <div className="text-sm">{t.title}</div>
+                            {t.due && <div className="text-xs text-gray-500">Vence: {new Date(t.due).toLocaleString('es-ES')}</div>}
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 flex gap-2">
+                <button onClick={saveWorkflow} disabled={savingWf} className="border-2 border-black bg-black text-white px-3 py-2 rounded-none hover:opacity-90 disabled:opacity-50">Guardar</button>
+              </div>
+            </div>
+            <div className="md:col-span-2 p-4 max-h-[70vh] overflow-auto space-y-4">
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div><span className="text-gray-600">Email:</span> <span className="font-medium">{viewing.clientEmail}</span></div>
+                <div><span className="text-gray-600">Método de pago:</span> <span className="font-medium">{viewing.paymentMethod || '-'}</span></div>
+                <div className="flex items-center gap-2"><span className="text-gray-600">Depósito:</span> <span className={`px-2 py-0.5 rounded text-xs ${viewing.depositPaid? 'bg-green-100 text-green-700':'bg-red-100 text-red-700'}`}>{viewing.depositPaid? 'Pagado':'No pagado'}</span></div>
+                <div className="flex items-center gap-2"><span className="text-gray-600">Restante:</span> <span className={`px-2 py-0.5 rounded text-xs ${viewing.finalPaymentPaid? 'bg-green-100 text-green-700':'bg-red-100 text-red-700'}`}>{viewing.finalPaymentPaid? 'Pagado':'No pagado'}</span></div>
+              </div>
+
+              <div>
+                <div className="text-sm font-medium mb-2">Items del contrato</div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-gray-600">
+                        <th className="py-1">Item</th>
+                        <th className="py-1">Cant.</th>
+                        <th className="py-1">Precio</th>
+                        <th className="py-1">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(viewing.services || []).map((it: any, idx: number) => {
+                        const qty = Number(it.quantity ?? 1);
+                        const price = Number(String(it.price || '').replace(/[^0-9]/g, ''));
+                        const total = price * qty;
+                        return (
+                          <tr key={idx} className="border-t">
+                            <td className="py-1">{it.name || it.id || '—'}</td>
+                            <td className="py-1">{qty}</td>
+                            <td className="py-1">R$ {price.toFixed(2)}</td>
+                            <td className="py-1">R$ {total.toFixed(2)}</td>
+                          </tr>
+                        );
+                      })}
+                      {Array.isArray(viewing.storeItems) && viewing.storeItems.map((it: any, idx: number) => (
+                        <tr key={`store-${idx}`} className="border-t">
+                          <td className="py-1">{it.name}</td>
+                          <td className="py-1">{Number(it.quantity)}</td>
+                          <td className="py-1">R$ {Number(it.price).toFixed(2)}</td>
+                          <td className="py-1">R$ {(Number(it.price) * Number(it.quantity)).toFixed(2)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button onClick={scheduleFinalPaymentEmail} className="border-2 border-black text-black px-3 py-2 rounded-none hover:bg-black hover:text-white">Programar email de saldo (−30 min)</button>
+                {viewing.reminders?.find(r=>r.type==='finalPayment') && (
+                  <span className="text-xs text-gray-600">Programado para: {new Date(viewing.reminders.find(r=>r.type==='finalPayment')!.sendAt).toLocaleString('es-ES')}</span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
     {editing && (
       <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-xl border border-gray-200 w-full max-w-lg p-4">
