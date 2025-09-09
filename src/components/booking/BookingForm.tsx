@@ -205,10 +205,18 @@ const BookingForm: React.FC<BookingFormProps> = ({ initialData, packages, onSubm
 
     if (!formData.name.trim()) setErr('name', 'Nome é obrigatório');
     if (!formData.cpf.trim()) setErr('cpf', 'CPF é obrigatório');
+    else if (!validateCPF(formData.cpf)) setErr('cpf', 'CPF inválido');
+
     if (!formData.rg.trim()) setErr('rg', 'RG é obrigatório');
+    else if (!validateRG(formData.rg)) setErr('rg', 'RG inválido');
+
     if (!formData.address.trim()) setErr('address', 'Endereço é obrigatório');
+
     if (!formData.email.trim()) setErr('email', 'Email é obrigatório');
+    else if (!validateEmail(formData.email)) setErr('email', 'Email inválido');
+
     if (!formData.phone.trim()) setErr('phone', 'Telefone é obrigatório');
+    else if (!validatePhoneBR(formData.phone)) setErr('phone', 'Telefone inválido');
 
     // Validate each service in cart
     if (formData.cartItems && formData.cartItems.length > 0) {
