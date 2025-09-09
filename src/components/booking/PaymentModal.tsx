@@ -48,10 +48,21 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, bookingDat
     return { total, deposit, remaining };
   };
 
+  useEffect(() => {
+    if (isOpen && paymentDisabled) {
+      setStep('calendar');
+    }
+  }, [isOpen, paymentDisabled]);
+
   const handlePayment = async () => {
     try {
       setLoading(true);
       setError(null);
+
+      if (paymentDisabled) {
+        setStep('calendar');
+        return;
+      }
 
       if (bookingData.paymentMethod === 'pix' || bookingData.paymentMethod === 'credit') {
         // Use Mercado Pago for PIX and Credit Card
