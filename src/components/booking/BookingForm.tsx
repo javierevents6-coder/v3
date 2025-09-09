@@ -76,7 +76,7 @@ const DatePicker: React.FC<{ value: string; onChange: (val: string) => void; min
         <button type="button" onClick={()=>setView(v=>({year: v.month===11? v.year+1:v.year, month: v.month===11?0:v.month+1}))} className="px-2 py-1 border rounded">»</button>
       </div>
       <div className="grid grid-cols-7 gap-1 text-center text-xs text-gray-500 mb-1">
-        {['S','T','Q','Q','S','S','D'].map(d=> <div key={d}>{d}</div>)}
+        {['S','T','Q','Q','S','S','D'].map((d, i) => <div key={`${d}-${i}`}>{d}</div>)}
       </div>
       <div className="grid grid-cols-7 gap-1">
         {cells.map((d, idx)=> d ? (
@@ -561,7 +561,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ initialData, packages, onSubm
               ) : (
                 (!formData.storeItems || formData.storeItems.length === 0) ? (
                   <section>
-                    <h2 className="text-xl font-medium mb-6 pb-2 border-b">Informações do Serviço</h2>
+                    <h2 className="text-xl font-medium mb-6 pb-2 border-b">Informações do Servi��o</h2>
                     <div className="bg-yellow-50 border border-yellow-200 p-4">
                       <p className="text-yellow-800">Nenhum serviço selecionado. Por favor, adicione serviços ao carrinho primeiro.</p>
                     </div>
