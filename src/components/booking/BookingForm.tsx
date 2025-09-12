@@ -5,6 +5,7 @@ import { dressOptions } from '../../data/dressData';
 import DressSelector from './DressSelector';
 import BookingCart from './BookingCart';
 import { Check } from 'lucide-react';
+import { formatPrice } from '../../utils/format';
 
 // Helpers for BR formatting/validation
 function onlyDigits(s: string) { return s.replace(/\D/g, ''); }
@@ -152,9 +153,32 @@ const BookingForm: React.FC<BookingFormProps> = ({ initialData, packages, onSubm
     });
   };
 
-  const getMaxDressesForPackage = (packageId: string) => {
-    const pkg = maternityPackages.find(p => p.id === packageId);
-    return pkg?.looks || 0;
+  const LOOKS_REGEX = /troca de (?:até )?(\d+) looks?/i;
+  const parseLooksFromFeatures = (features?: string[]) => {
+    if (!features) return 0;
+    for (const f of features) {
+      const m = String(f).match(LOOKS_REGEX);
+      if (m) return parseInt(m[1], 10) || 0;
+    }
+    return 0;
+  };
+  const getMaxLooks = (item: any): number => {
+    // 1) If item carries features, parse them
+    const fromItem = parseLooksFromFeatures(item?.features);
+    if (fromItem) return fromItem;
+    // 2) Try static maternity packages by id
+    const byId = maternityPackages.find(p => p.id === item?.id);
+    if (byId?.looks) return byId.looks;
+    // 3) Try static packages by title/name
+    const byTitle = maternityPackages.find(p => p.title === item?.name);
+    if (byTitle?.looks) return byTitle.looks;
+    // 4) Try to parse from a generic packages list if available
+    const anyPkg = packages?.find((p: any) => p.id === item?.id || p.title === item?.name);
+    const fromPkgFeatures = parseLooksFromFeatures(anyPkg?.features);
+    if (fromPkgFeatures) return fromPkgFeatures;
+    const looksProp = Number((anyPkg as any)?.looks || 0);
+    if (looksProp) return looksProp;
+    return 0;
   };
 
   const handleDressSelection = (selectedDresses: string[]) => {
@@ -477,12 +501,24 @@ const BookingForm: React.FC<BookingFormProps> = ({ initialData, packages, onSubm
                         {errors[`time_${index}`] && <p className="text-red-500 text-sm mt-1">{errors[`time_${index}`]}</p>}
                       </div>
 
+                      {/* Dress selection just below time selection */}
+                      {item.type === 'maternity' && (
+                        <div className="md:col-span-2">
+                          <DressSelector
+                            dresses={dressOptions}
+                            maxSelections={getMaxLooks(item)}
+                            selectedDresses={formData.selectedDresses || []}
+                            onChange={handleDressSelection}
+                          />
+                        </div>
+                      )}
+
                       <div className="md:col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Localização do Evento *
-                          <a 
-                            href="https://maps.google.com" 
-                            target="_blank" 
+                          <a
+                            href="https://maps.google.com"
+                            target="_blank"
                             rel="noopener noreferrer"
                             className="ml-2 link-luxe text-sm"
                           >
@@ -544,7 +580,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ initialData, packages, onSubm
                         if (hasDiscount) {
                           return (
                             <p className="text-xs text-green-600 mt-1 font-medium">
-                              ✅ Cupom aplicado com sucesso! Desconto de 100%
+                              ��� Cupom aplicado com sucesso! Desconto de 100%
                             </p>
                           );
                         }
@@ -578,7 +614,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ initialData, packages, onSubm
                       {formData.storeItems.map((item, index) => (
                         <div key={`store-form-${index}`} className="flex justify-between text-sm">
                           <span className="text-gray-800">{item.name} ({item.quantity}x)</span>
-                          <span className="font-medium text-gray-900">R$ {(item.price * item.quantity).toFixed(2).replace('.', ',')}</span>
+                          <span className="font-medium text-gray-900">{formatPrice(Number(item.price) * Number(item.quantity))}</span>
                         </div>
                       ))}
                     </div>
@@ -625,64 +661,6 @@ const BookingForm: React.FC<BookingFormProps> = ({ initialData, packages, onSubm
                 </div>
               </section>
 
-              {/* Dress Selection for Maternity */}
-              {formData.serviceType === 'maternity' && formData.packageId && (
-                <section>
-                  <h2 className="text-xl font-medium mb-6 pb-2 border-b">Seleção de Vestidos</h2>
-                  <div className="mb-4">
-                    <p className="text-gray-600">
-                      Selecione até {getMaxDressesForPackage(formData.packageId)} vestidos para sua sessão de gestante:
-                    </p>
-                  </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {dressOptions.map((dress) => (
-                      <div 
-                        key={dress.id}
-                        className={`relative cursor-pointer ${
-                          formData.selectedDresses.length >= getMaxDressesForPackage(formData.packageId) && 
-                          !formData.selectedDresses.includes(dress.id) ? 'opacity-50' : ''
-                        }`}
-                        onClick={() => {
-                          const maxDresses = getMaxDressesForPackage(formData.packageId);
-                          if (formData.selectedDresses.includes(dress.id)) {
-                            // Remove dress
-                            handleDressSelection(formData.selectedDresses.filter(id => id !== dress.id));
-                          } else if (formData.selectedDresses.length < maxDresses) {
-                            // Add dress
-                            handleDressSelection([...formData.selectedDresses, dress.id]);
-                          }
-                        }}
-                      >
-                        <div className="aspect-square overflow-hidden">
-                          <img loading="lazy"
-                            src={dress.image}
-                            alt={dress.name}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div className={`absolute inset-0 border-2 ${
-                          formData.selectedDresses.includes(dress.id)
-                            ? 'border-green-500 bg-black/20'
-                            : 'border-transparent'
-                        }`}>
-                          {formData.selectedDresses.includes(dress.id) && (
-                            <div className="absolute top-2 right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white">
-                              <Check size={16} />
-                            </div>
-                          )}
-                        </div>
-                        <div className="mt-2 text-center">
-                          <p className="text-sm font-medium">{dress.name}</p>
-                          <p className="text-sm text-gray-600">{dress.color}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mt-4 text-sm text-gray-600">
-                    {formData.selectedDresses.length} de {getMaxDressesForPackage(formData.packageId)} vestidos selecionados
-                  </div>
-                </section>
-              )}
               {/* Additional Information */}
               <section>
                 <h2 className="text-xl font-medium mb-6 pb-2 border-b">Informações Adicionais</h2>

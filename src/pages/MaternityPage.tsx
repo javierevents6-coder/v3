@@ -4,6 +4,7 @@ import { ChevronRight, Eye } from 'lucide-react';
 import { maternityPackages } from '../data/maternityData';
 import { useCart } from '../contexts/CartContext';
 import { fetchPackages, DBPackage } from '../utils/packagesService';
+import { formatPrice } from '../utils/format';
 import { useAuth } from '../contexts/AuthContext';
 import PackageEditorModal from '../components/admin/PackageEditorModal';
 
@@ -70,7 +71,8 @@ const MaternityPage = () => {
         name: pkg.title,
         price: pkg.price,
         duration: pkg.duration,
-        image: pkg.image
+        image: pkg.image,
+        features: pkg.features || []
       };
 
       console.log('📱 MaternityPage: Cart item to add', cartItem);
@@ -110,7 +112,7 @@ const MaternityPage = () => {
               ? dbPackages.map((p) => ({
                 id: p.id,
                 title: p.title,
-                price: `R$ ${Number(p.price).toFixed(2).replace('.', ',')}`,
+                price: formatPrice(Number(p.price)),
                 duration: p.duration,
                 description: p.description,
                 features: p.features || [],

@@ -1,20 +1,21 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, Eye, EyeOff } from 'lucide-react';
-import { signInAnonymously, signOut as firebaseSignOut } from 'firebase/auth';
+import { signOut as firebaseSignOut } from 'firebase/auth';
 import { auth } from '../../utils/firebaseClient';
 import { useTranslation } from 'react-i18next';
 import Logo from '../ui/Logo';
 import CartIcon from '../cart/CartIcon';
 import { useFeatureFlags } from '../../contexts/FeatureFlagsContext';
+import { useAuth } from '../../contexts/AuthContext';
+import LoginModal from '../auth/LoginModal';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState<boolean>(Boolean(typeof window !== 'undefined' && localStorage.getItem('site_admin_mode')));
-  const [showAdminModal, setShowAdminModal] = useState(false);
-  const [adminModalKey, setAdminModalKey] = useState('');
-  const [adminModalError, setAdminModalError] = useState('');
+  const { user, isAdmin: userIsAdmin, loading: authLoading, refreshClaims } = useAuth();
+  const [showAdminEmailLogin, setShowAdminEmailLogin] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -47,33 +48,63 @@ const Header = () => {
     setIsAdmin(val);
   };
 
-  const toggleAdminFromHeader = () => {
+  const toggleAdminFromHeader = async () => {
     if (!isAdmin) {
-      setAdminModalKey('');
-      setAdminModalError('');
-      setShowAdminModal(true);
+      // If user is authenticated and has admin claim, enable admin mode
+      if (user) {
+        if (userIsAdmin) {
+          try {
+            notifyAdminChange(true);
+            navigate('/admin-store');
+          } catch (e) {
+            console.error('Failed to enable admin mode', e);
+          }
+        } else {
+          // Try refreshing claims in case they were just set
+          await refreshClaims();
+          if (authLoading) return;
+          const token = await auth.currentUser?.getIdTokenResult();
+          if (token?.claims?.admin) {
+            notifyAdminChange(true);
+            navigate('/admin-store');
+          } else {
+            // Prompt for email/password login to check admin claims
+            setShowAdminEmailLogin(true);
+          }
+        }
+      } else {
+        // Not authenticated: show email/password login modal
+        setShowAdminEmailLogin(true);
+      }
     } else {
       notifyAdminChange(false);
     }
   };
 
-  const submitAdminModal = async () => {
-    if (!adminModalKey) { setAdminModalError('Insira a senha'); return; }
-    if (adminModalKey === '1234') {
-      try {
-        // Sign in anonymously so storage rules that require auth will allow uploads
-        await signInAnonymously(auth);
-      } catch (e) {
-        console.error('Anonymous sign-in failed', e);
+  const checkAdminAfterLogin = async () => {
+    try {
+      await refreshClaims();
+      const token = await auth.currentUser?.getIdTokenResult(true);
+      const claims = token?.claims || {};
+      if (claims.admin) {
+        notifyAdminChange(true);
+        navigate('/admin-store');
+        return true;
+      } else {
+        return false;
       }
-      notifyAdminChange(true);
-      setShowAdminModal(false);
-      setAdminModalKey('');
-      setAdminModalError('');
-      navigate('/admin-store');
-    } else {
-      setAdminModalError('Senha incorreta');
+    } catch (e) {
+      console.error('Error checking admin claims:', e);
+      return false;
     }
+  };
+
+  const handleAdminEmailLoginClose = async () => {
+    setShowAdminEmailLogin(false);
+    // small delay for auth state propagation
+    setTimeout(() => {
+      checkAdminAfterLogin();
+    }, 600);
   };
 
   useEffect(() => {
@@ -105,8 +136,8 @@ const Header = () => {
   }, [mobileMenuOpen]);
 
   const handleBooking = () => {
-    const message = t('nav.bookMessage');
-    window.open(`https://wa.me/5541984875565?text=${encodeURIComponent(message)}`, '_blank');
+    // Navigate to booking page (same behavior as Hero)
+    navigate('/booking');
   };
 
   const { flags } = useFeatureFlags();
@@ -118,7 +149,8 @@ const Header = () => {
       const headerHeight = header ? (header as HTMLElement).offsetHeight : 0;
       const rect = el.getBoundingClientRect();
       const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-      const target = rect.top + scrollTop - headerHeight - 16; // small spacing
+      const extraDown = 80; // push the section a bit lower in the viewport
+      const target = rect.top + scrollTop - headerHeight + extraDown;
       window.scrollTo({ top: target, behavior: 'smooth' });
     };
 
@@ -227,9 +259,9 @@ const Header = () => {
           </div>
         </div>
 
-        <div className={`fixed inset-0 bg-white z-40 transform transition-transform duration-300 ease-in-out ${
+        <div className={`fixed top-0 bottom-0 right-4 bg-white z-40 md:hidden transform transition-transform duration-300 ease-in-out ${
           mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}>
+        }`} style={{ width: 'calc(100% - 64px)', borderRadius: 12 }}>
           <div className="flex flex-col h-full pt-24 px-6">
             <ul className="flex flex-col space-y-6 text-center">
               {navLinks.map((link) => (
@@ -264,26 +296,8 @@ const Header = () => {
         </div>
       </div>
 
-      {showAdminModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-          <div className="bg-white rounded-lg max-w-md w-full p-6 shadow-xl">
-            <h3 className="text-xl font-semibold mb-2">Acesso ao painel da loja</h3>
-            <p className="text-sm text-gray-600 mb-4">Insira a senha de administrador para acessar o painel.</p>
-            <input
-              type="password"
-              autoFocus
-              value={adminModalKey}
-              onChange={(e) => setAdminModalKey(e.target.value)}
-              className="w-full border border-gray-200 rounded px-3 py-2 mb-3 focus:outline-none focus:ring-2 focus:ring-secondary"
-              placeholder="Senha de acesso"
-            />
-            {adminModalError && <div className="text-red-500 text-sm mb-3">{adminModalError}</div>}
-            <div className="flex justify-end gap-3">
-              <button onClick={() => { setShowAdminModal(false); setAdminModalKey(''); setAdminModalError(''); }} className="px-4 py-2 border rounded">Cancelar</button>
-              <button onClick={submitAdminModal} className="px-4 py-2 bg-primary text-white rounded">Acessar</button>
-            </div>
-          </div>
-        </div>
+      {showAdminEmailLogin && (
+        <LoginModal isOpen={true} onClose={handleAdminEmailLoginClose} initialMode={'login'} adminOnly={true} onSuccess={checkAdminAfterLogin} />
       )}
 
     </header>

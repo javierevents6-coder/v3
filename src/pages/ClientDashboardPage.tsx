@@ -121,8 +121,10 @@ const ClientDashboardPage: React.FC = () => {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
-      currency: 'BRL'
-    }).format(value);
+      currency: 'BRL',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(Math.round(value));
   };
 
   const formatDate = (dateString: string) => {
@@ -180,11 +182,11 @@ const ClientDashboardPage: React.FC = () => {
               <div style="border-top: 1px solid #ddd; padding-top: 10px; margin-top: 10px;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
                   <span>Sinal (20%):</span>
-                  <span style="font-weight: bold;">${formatCurrency(contract.totalAmount * 0.2)}</span>
+                  <span style="font-weight: bold;">${formatCurrency(Math.round(contract.totalAmount * 0.2))}</span>
                 </div>
                 <div style="display: flex; justify-content: space-between;">
                   <span>Restante (80%):</span>
-                  <span style="font-weight: bold;">${formatCurrency(contract.totalAmount * 0.8)}</span>
+                  <span style="font-weight: bold;">${formatCurrency(Math.round(contract.totalAmount * 0.8))}</span>
                 </div>
               </div>
             </div>

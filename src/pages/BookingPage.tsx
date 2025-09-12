@@ -9,6 +9,7 @@ import { sessionPackages } from '../data/sessionsData';
 import { eventPackages } from '../data/eventsData';
 import { maternityPackages } from '../data/maternityData';
 import { useFeatureFlags } from '../contexts/FeatureFlagsContext';
+import { formatPrice } from '../utils/format';
 
 type BookingStep = 'contract' | 'form' | 'preview' | 'complete';
 
@@ -51,7 +52,7 @@ const BookingPage = () => {
         .map(item => ({
           id: item.id,
           name: item.name,
-          price: Number(item.price.replace(/[^0-9]/g, '')) / 100,
+          price: Number(item.price.replace(/[^0-9]/g, '')),
           quantity: item.quantity,
           image_url: item.image,
           description: ''
@@ -121,7 +122,7 @@ const BookingPage = () => {
           id: p.id,
           type: 'store',
           name: p.name,
-          price: `R$ ${p.price.toFixed(2).replace('.', ',')}`,
+          price: formatPrice(p.price),
           duration: '',
           image: p.image_url || ''
         });

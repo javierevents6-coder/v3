@@ -13,55 +13,52 @@ export interface MaternityPackageType {
 
 export const maternityPackages: MaternityPackageType[] = [
   {
-    id: 'maternity-basic',
-    title: 'Pacote Maternidade Essencial',
-    price: 'R$ 450',
-    duration: '1 hora',
-    description: 'Sessão simples e delicada em estúdio para registrar esse momento especial.',
+    id: 'maternity-gold',
+    title: 'GOLD',
+    price: 'R$ 200',
+    duration: '30 minutos',
+    description: 'Sessão rápida em estúdio para registrar com carinho este momento único.',
     features: [
-      '1 hora de sessão',
-      '20 fotos editadas',
-      'Troca de 1 look',
-      'Galeria digital privada',
-      'Entrega em 7 dias úteis'
+      'Figurinos: 1',
+      'Fotos digitais: 10',
+      'Participantes: Apenas 2 pessoas + filhos',
+      'Local: Apenas no estúdio',
+      'Maquiagem adicional: R$ 80'
     ],
     image: 'https://images.pexels.com/photos/4253831/pexels-photo-4253831.jpeg?auto=compress&cs=tinysrgb&w=1600',
     looks: 1
   },
   {
-    id: 'maternity-complete',
-    title: 'Pacote Maternidade Completo',
-    price: 'R$ 750',
-    duration: '2 horas',
-    description: 'Sessão completa em estúdio e/ou externa com mais variedade e tempo para registros criativos.',
+    id: 'maternity-platinum',
+    title: 'PLATINUM',
+    price: 'R$ 400',
+    duration: '1 hora 30 minutos',
+    description: 'Sessão completa com maior variedade de looks, podendo ser externa ou em estúdio.',
     features: [
-      '2 horas de sessão',
-      '40 fotos editadas',
-      'Troca de até 2 looks',
-      'Fotos com acompanhante e filhos incluídas',
-      'Galeria digital privada',
-      'Entrega em 10 dias úteis'
+      'Figurinos: 3',
+      'Fotos digitais: 30',
+      'Participantes: Família inteira pode participar',
+      'Maquiagem: Inclusa',
+      'Local: Externas ou estúdio',
+      'Maquiagem adicional: R$ 80'
     ],
     image: 'https://images.pexels.com/photos/3951843/pexels-photo-3951843.jpeg?auto=compress&cs=tinysrgb&w=1600',
-    looks: 2
+    looks: 3
   },
   {
-    id: 'maternity-premium',
-    title: 'Pacote Maternidade Premium',
-    price: 'R$ 1.100',
-    duration: '3 horas',
-    description: 'Experiência fotográfica completa com produção, figurino e fotos artísticas.',
+    id: 'maternity-diamond',
+    title: 'DIAMOND',
+    price: 'R$ 250',
+    duration: 'Até 45 minutos',
+    description: 'Sessão dinâmica com foco em fotos externas ou em estúdio, incluindo a família.',
     features: [
-      '3 horas de sessão (estúdio + externo)',
-      '60 fotos editadas',
-      'Troca de até 3 looks',
-      'Consultoria de figurino',
-      'Make e cabelo inclusos',
-      'Galeria digital com slideshow',
-      'Mini-álbum impresso (20x20cm)',
-      'Entrega em 15 dias úteis'
+      'Figurinos: 2',
+      'Fotos digitais: 20',
+      'Participantes: Família inteira nas fotos externas',
+      'Local: Externas ou estúdio',
+      'Maquiagem adicional: R$ 80'
     ],
     image: 'https://images.pexels.com/photos/3992658/pexels-photo-3992658.jpeg?auto=compress&cs=tinysrgb&w=1600',
-    looks: 3
+    looks: 2
   }
 ];

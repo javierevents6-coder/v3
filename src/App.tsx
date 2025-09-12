@@ -19,6 +19,7 @@ const ClientDashboardPage = lazy(() => import('./pages/ClientDashboardPage'));
 const PackagesAdminPage = lazy(() => import('./pages/PackagesAdminPage'));
 const AdminStorePage = lazy(() => import('./pages/AdminStorePage'));
 import './styles/globals.css';
+import ErrorBoundary from './components/ui/ErrorBoundary';
 
 function App() {
   return (
@@ -28,23 +29,25 @@ function App() {
           <Router>
             <ScrollToTop />
             <Layout>
-              <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Cargando...</div>}>
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/portfolio" element={<GuardedRoute page="portfolio"><PortfolioPage /></GuardedRoute>} />
-                <Route path="/portrait" element={<GuardedRoute page="portrait"><PortraitPage /></GuardedRoute>} />
-                <Route path="/maternity" element={<GuardedRoute page="maternity"><MaternityPage /></GuardedRoute>} />
-                <Route path="/events" element={<GuardedRoute page="events"><EventsPage /></GuardedRoute>} />
-                <Route path="/contact" element={<GuardedRoute page="contact"><ContactPage /></GuardedRoute>} />
-                <Route path="/booking" element={<GuardedRoute page="booking"><BookingPage /></GuardedRoute>} />
-                <Route path="/store" element={<GuardedRoute page="store"><StorePage /></GuardedRoute>} />
-                <Route path="/admin" element={<GuardedRoute page="admin"><AdminPage /></GuardedRoute>} />
-                <Route path="/dashboard" element={<GuardedRoute page="clientDashboard"><ClientDashboardPage /></GuardedRoute>} />
-                <Route path="/packages-admin" element={<GuardedRoute page="packagesAdmin"><PackagesAdminPage /></GuardedRoute>} />
-                <Route path="/admin-store" element={<GuardedRoute page="admin"><AdminStorePage /></GuardedRoute>} />
-                <Route path="*" element={<HomePage />} />
-              </Routes>
-            </Suspense>
+              <ErrorBoundary>
+                <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Cargando...</div>}>
+                <Routes>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/portfolio" element={<GuardedRoute page="portfolio"><PortfolioPage /></GuardedRoute>} />
+                  <Route path="/portrait" element={<GuardedRoute page="portrait"><PortraitPage /></GuardedRoute>} />
+                  <Route path="/maternity" element={<GuardedRoute page="maternity"><MaternityPage /></GuardedRoute>} />
+                  <Route path="/events" element={<GuardedRoute page="events"><EventsPage /></GuardedRoute>} />
+                  <Route path="/contact" element={<GuardedRoute page="contact"><ContactPage /></GuardedRoute>} />
+                  <Route path="/booking" element={<GuardedRoute page="booking"><BookingPage /></GuardedRoute>} />
+                  <Route path="/store" element={<GuardedRoute page="store"><StorePage /></GuardedRoute>} />
+                  <Route path="/admin" element={<GuardedRoute page="admin"><AdminPage /></GuardedRoute>} />
+                  <Route path="/dashboard" element={<GuardedRoute page="clientDashboard"><ClientDashboardPage /></GuardedRoute>} />
+                  <Route path="/packages-admin" element={<GuardedRoute page="packagesAdmin"><PackagesAdminPage /></GuardedRoute>} />
+                  <Route path="/admin-store" element={<GuardedRoute page="admin"><AdminStorePage /></GuardedRoute>} />
+                  <Route path="*" element={<HomePage />} />
+                </Routes>
+                </Suspense>
+              </ErrorBoundary>
             </Layout>
           </Router>
         </FeatureFlagsProvider>

@@ -366,7 +366,7 @@ const ContractPreview = ({ data, onConfirm, onBack }: ContractPreviewProps) => {
               </div>
 
               {/* Service Object - hidden for store-only checkout */}
-          {((data.cartItems && data.cartItems.length > 0) || !(data.storeItems && data.storeItems.length > 0)) && (
+          {((data.cartItems && data.cartItems.length > 0) || (data.storeItems && data.storeItems.length > 0)) && (
             <div className="mb-8">
               <h3 className="text-lg font-medium text-primary mb-4 pb-2 border-b border-secondary">
                 OBJETO DO CONTRATO
@@ -417,9 +417,50 @@ const ContractPreview = ({ data, onConfirm, onBack }: ContractPreviewProps) => {
                             </span>
                           </div>
                         </div>
+
+                        {item.type === 'maternity' && selectedDresses.length > 0 && (
+                          <div className="mt-4">
+                            <h5 className="font-medium text-primary mb-2">Vestidos Selecionados</h5>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                              {selectedDresses.map((dress) => (
+                                <div key={dress.id} className="text-center">
+                                  <div className="aspect-square overflow-hidden rounded-lg mb-2">
+                                    <img loading="lazy" src={dress.image} alt={dress.name} className="w-full h-full object-cover" />
+                                  </div>
+                                  <p className="text-sm font-medium text-gray-900">{dress.name}</p>
+                                  <p className="text-xs text-gray-600">{dress.color}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
+
+                  {data.storeItems && data.storeItems.length > 0 && (
+                    <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                      <h4 className="text-lg font-medium text-primary mb-4">Produtos da Loja</h4>
+                      <div className="space-y-3">
+                        {data.storeItems.map((s, i) => (
+                          <div key={`obj-store-${i}`} className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              {s.image_url ? (
+                                <img loading="lazy" src={s.image_url} alt={s.name} className="w-12 h-12 object-cover rounded" />
+                              ) : null}
+                              <div>
+                                <div className="font-medium text-gray-900">{s.name}</div>
+                                <div className="text-sm text-gray-600">Quantidade: {s.quantity}</div>
+                              </div>
+                            </div>
+                            <div className="text-sm font-medium text-gray-900">
+                              R$ {(Number(s.price) * Number(s.quantity)).toFixed(2).replace('.', ',')}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
@@ -429,96 +470,7 @@ const ContractPreview = ({ data, onConfirm, onBack }: ContractPreviewProps) => {
             </div>
           )}
 
-              {/* Service Summary */}
-              <div className="mb-8">
-                <h3 className="text-lg font-medium text-primary mb-4 pb-2 border-b border-secondary">
-                  RESUMO DOS SERVIÇOS
-                </h3>
-                <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                    {data.cartItems?.map((item, index) => (
-                      <div key={`summary-${index}`} className="flex justify-between items-center">
-                        {(() => {
-                          const itemPrice = parseBRL(item.price);
-                          const itemTotal = itemPrice * item.quantity;
-                          const coupon = data[`discountCoupon_${index}`];
-                          const hasDiscount = coupon === 'FREE' && item.id && item.id.includes('prewedding') && !item.id.includes('teaser');
-                          
-                          return (
-                            <>
-                              <span className="text-gray-700">
-                                {item.name} ({item.quantity}x)
-                              </span>
-                              {hasDiscount ? (
-                                <span className="space-x-2">
-                                  <span className="line-through text-gray-500">R$ {itemTotal.toFixed(2).replace('.', ',')}</span>
-                                  <span className="text-green-600 font-bold">R$ 0,00</span>
-                                </span>
-                              ) : (
-                                <span className="font-medium text-gray-900">
-                                  R$ {itemTotal.toFixed(2).replace('.', ',')}
-                                </span>
-                              )}
-                            </>
-                          );
-                        })()}
-                      </div>
-                    ))}
-                    {data.storeItems && data.storeItems.length > 0 && (
-                      <>
-                        <div className="border-t border-gray-300 mt-4 pt-4">
-                          <h4 className="font-medium text-gray-900 mb-3">Serviços adicionais:</h4>
-                          {data.storeItems.map((item, index) => (
-                            <div key={`store-${index}`} className="flex justify-between items-center">
-                              <span className="text-gray-700">
-                                {item.name} ({item.quantity}x)
-                              </span>
-                              <span className="font-medium text-gray-900">
-                                R$ {(item.price * item.quantity).toFixed(2).replace('.', ',')}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </>
-                    )}
-                    {data.travelCost > 0 && (
-                      <div className="flex justify-between items-center border-t pt-3">
-                        <span className="text-gray-700">Taxa de Deslocamento</span>
-                        <span className="font-medium text-gray-900">
-                          R$ {data.travelCost.toFixed(2).replace('.', ',')}
-                        </span>
-                      </div>
-                    )}
-                </div>
-              </div>
 
-              {/* Vestidos Selecionados - Solo para gestantes */}
-              {data.serviceType === 'maternity' && selectedDresses.length > 0 && (
-                <div className="mb-8">
-                  <h3 className="text-lg font-medium text-primary mb-4 pb-2 border-b border-secondary">
-                    VESTIDOS SELECIONADOS
-                  </h3>
-                  <div className="bg-gray-50 p-6 rounded-lg">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {selectedDresses.map((dress) => (
-                        <div key={dress.id} className="text-center">
-                          <div className="aspect-square overflow-hidden rounded-lg mb-2">
-                            <img loading="lazy"
-                              src={dress.image}
-                              alt={dress.name}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          <p className="text-sm font-medium text-gray-900">{dress.name}</p>
-                          <p className="text-xs text-gray-600">{dress.color}</p>
-                        </div>
-                      ))}
-                    </div>
-                    <p className="text-sm text-gray-600 mt-4">
-                      Total de vestidos selecionados: {selectedDresses.length}
-                    </p>
-                  </div>
-                </div>
-              )}
 
               {/* Entrega */}
               {(() => {
@@ -553,10 +505,10 @@ const ContractPreview = ({ data, onConfirm, onBack }: ContractPreviewProps) => {
                 ) : null;
               })()}
 
-              {/* Financial Terms */}
+              {/* Summary and Totals */}
               <div className="mb-8">
                 <h3 className="text-lg font-medium text-primary mb-4 pb-2 border-b border-secondary">
-                  CONDIÇÕES FINANCEIRAS
+                  RESUMO DOS SERVIÇOS
                 </h3>
                 <div className="bg-gray-50 p-6 rounded-lg">
                   <div className="space-y-4">

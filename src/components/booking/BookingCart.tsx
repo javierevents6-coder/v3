@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { CartItem, PaymentMethod } from '../../types/booking';
 import { MapPin, CreditCard, Wallet, QrCode, ChevronRight, AlertCircle } from 'lucide-react';
+import { formatPrice as formatBRL } from '../../utils/format';
 
 interface BookingCartProps {
   cartItems: any[];
@@ -42,7 +43,7 @@ const BookingCart = ({ cartItems, travelCost, paymentMethod, formData = {} }: Bo
     const subtotal = itemsTotal + storeItemsTotal + travelCost;
 
     // Apply payment method discount (cash discount)
-    const paymentDiscount = paymentMethod === 'cash' ? subtotal * 0.05 : 0;
+    const paymentDiscount = paymentMethod === 'cash' ? Math.round(subtotal * 0.05) : 0;
     
     // Calculate total item discounts for display
     const itemDiscounts = cartItems.reduce((sum, item, index) => {
@@ -66,10 +67,10 @@ const BookingCart = ({ cartItems, travelCost, paymentMethod, formData = {} }: Bo
       return sum + itemTotal;
     }, 0);
 
-    const depositServices = Math.max(0, Math.round(servicesAfterCoupons * 0.2 * 100) / 100);
-    const depositStore = Math.max(0, Math.round(storeItemsTotal * 0.5 * 100) / 100);
-    const deposit = Math.max(0, Math.round((depositServices + depositStore) * 100) / 100);
-    const remaining = Math.max(0, Math.round((total - deposit) * 100) / 100);
+    const depositServices = Math.max(0, Math.round(servicesAfterCoupons * 0.2));
+    const depositStore = Math.max(0, Math.round(storeItemsTotal * 0.5));
+    const deposit = Math.max(0, Math.round(depositServices + depositStore));
+    const remaining = Math.max(0, Math.round(total - deposit));
 
     return {
       subtotal,
@@ -113,11 +114,11 @@ const BookingCart = ({ cartItems, travelCost, paymentMethod, formData = {} }: Bo
         <div className="p-6 border-b border-gray-200">
           <div className="text-right">
             <div className="text-2xl font-normal text-red-600 mb-1">
-              R$ {total.toFixed(2).replace('.', ',')}
+              {formatBRL(total)}
             </div>
             {discount > 0 && (
               <div className="text-sm text-gray-600 line-through">
-                Você economizou R$ {discount.toFixed(2).replace('.', ',')}!
+                Você economizou {formatBRL(discount)}!
               </div>
             )}
           </div>
@@ -182,13 +183,13 @@ const BookingCart = ({ cartItems, travelCost, paymentMethod, formData = {} }: Bo
                             if (hasDiscount) {
                               return (
                                 <span className="space-x-2">
-                                  <span className="line-through text-gray-500">R$ {itemTotal.toFixed(2).replace('.', ',')}</span>
-                                  <span className="text-green-600 font-bold">R$ 0,00</span>
+                                  <span className="line-through text-gray-500">{formatBRL(itemTotal)}</span>
+                                  <span className="text-green-600 font-bold">{formatBRL(0)}</span>
                                 </span>
                               );
                             }
 
-                            return `R$ ${itemTotal.toFixed(2).replace('.', ',')}`;
+                            return formatBRL(itemTotal);
                           })()}
                         </span>
                       </div>
@@ -227,7 +228,7 @@ const BookingCart = ({ cartItems, travelCost, paymentMethod, formData = {} }: Bo
                       ) : null}
                       <span className="text-gray-800">{s.name} ({s.quantity}x)</span>
                     </div>
-                    <span className="font-medium text-gray-900">R$ {(Number(s.price) * Number(s.quantity)).toFixed(2).replace('.', ',')}</span>
+                    <span className="font-medium text-gray-900">{formatBRL(Number(s.price) * Number(s.quantity))}</span>
                   </div>
                 ))}
               </div>
@@ -238,7 +239,7 @@ const BookingCart = ({ cartItems, travelCost, paymentMethod, formData = {} }: Bo
             {travelCost > 0 && (
               <div className="flex justify-between">
                 <span className="text-gray-600">Taxa de deslocamento:</span>
-                <span className="text-gray-900">R$ {travelCost.toFixed(2).replace('.', ',')}</span>
+                <span className="text-gray-900">{formatBRL(travelCost)}</span>
               </div>
             )}
             <div className="flex justify-between">
@@ -304,7 +305,7 @@ const BookingCart = ({ cartItems, travelCost, paymentMethod, formData = {} }: Bo
             <div className="bg-gray-50 rounded-lg p-3">
               <div className="flex justify-between items-center mb-1">
                 <span className="text-sm font-medium text-gray-900">Sinal 20% Pacotes</span>
-                <span className="text-lg font-bold text-gray-900">R$ {depositServices.toFixed(2).replace('.', ',')}</span>
+                <span className="text-lg font-bold text-gray-900">{formatBRL(depositServices)}</span>
               </div>
               <div className="text-xs text-gray-600">Sobre os pacotes de fotos</div>
             </div>
@@ -314,7 +315,7 @@ const BookingCart = ({ cartItems, travelCost, paymentMethod, formData = {} }: Bo
             <div className="bg-gray-50 rounded-lg p-3">
               <div className="flex justify-between items-center mb-1">
                 <span className="text-sm font-medium text-gray-900">Sinal 50% Adicionais</span>
-                <span className="text-lg font-bold text-gray-900">R$ {depositStore.toFixed(2).replace('.', ',')}</span>
+                <span className="text-lg font-bold text-gray-900">{formatBRL(depositStore)}</span>
               </div>
               <div className="text-xs text-gray-600">Sobre os serviços adicionais</div>
             </div>
@@ -323,7 +324,7 @@ const BookingCart = ({ cartItems, travelCost, paymentMethod, formData = {} }: Bo
           <div className="bg-gray-50 rounded-lg p-3">
             <div className="flex justify-between items-center mb-1">
               <span className="text-sm font-medium text-gray-900">Sinal Total</span>
-              <span className="text-lg font-bold text-gray-900">R$ {deposit.toFixed(2).replace('.', ',')}</span>
+              <span className="text-lg font-bold text-gray-900">{formatBRL(deposit)}</span>
             </div>
             <div className="text-xs text-gray-600">Para confirmar a reserva</div>
           </div>
@@ -331,7 +332,7 @@ const BookingCart = ({ cartItems, travelCost, paymentMethod, formData = {} }: Bo
           <div className="bg-gray-50 rounded-lg p-3">
             <div className="flex justify-between items-center mb-1">
               <span className="text-sm font-medium text-gray-900">Restante</span>
-              <span className="text-lg font-bold text-gray-900">R$ {remaining.toFixed(2).replace('.', ',')}</span>
+              <span className="text-lg font-bold text-gray-900">{formatBRL(remaining)}</span>
             </div>
             <div className="text-xs text-gray-600">No dia do evento</div>
           </div>
@@ -349,7 +350,7 @@ const BookingCart = ({ cartItems, travelCost, paymentMethod, formData = {} }: Bo
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-sm font-medium text-green-700">Cupons Aplicados</span>
                     <span className="text-lg font-bold text-green-600">
-                      - R$ {appliedCoupons.reduce((sum, item) => sum + calculateItemTotal(item), 0).toFixed(2).replace('.', ',')}
+                      - {formatBRL(appliedCoupons.reduce((sum, item) => sum + calculateItemTotal(item), 0))}
                     </span>
                   </div>
                   <div className="text-xs text-green-600">
@@ -367,7 +368,7 @@ const BookingCart = ({ cartItems, travelCost, paymentMethod, formData = {} }: Bo
             <div className="bg-green-50 rounded-lg p-3 border border-green-200">
               <div className="flex justify-between items-center mb-1">
                 <span className="text-sm font-medium text-green-700">Desconto Pagamento (5%)</span>
-                <span className="text-lg font-bold text-green-600">- R$ {discount.toFixed(2).replace('.', ',')}</span>
+                <span className="text-lg font-bold text-green-600">- {formatBRL(discount)}</span>
               </div>
               <div className="text-xs text-green-600">Por pagamento em dinheiro</div>
             </div>
@@ -377,11 +378,11 @@ const BookingCart = ({ cartItems, travelCost, paymentMethod, formData = {} }: Bo
             <div className="bg-white rounded-lg p-3 border-2 border-green-500">
               <div className="flex justify-between items-center">
                 <span className="text-lg font-bold text-gray-900">Total Final</span>
-                <span className="text-2xl font-bold text-green-600">R$ {total.toFixed(2).replace('.', ',')}</span>
+                <span className="text-2xl font-bold text-green-600">{formatBRL(total)}</span>
               </div>
               {discount > 0 && (
                 <div className="text-sm text-green-600 text-right mt-1">
-                  Você economizou R$ {discount.toFixed(2).replace('.', ',')}!
+                  Você economizou {formatBRL(discount)}!
                 </div>
               )}
             </div>

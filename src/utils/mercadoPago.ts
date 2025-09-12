@@ -37,7 +37,7 @@ export class MercadoPagoService {
     try {
       // Calculate total amount
       const servicesTotal = (bookingData.cartItems || []).reduce((sum: number, item: any) => {
-        const itemPrice = Number(item.price.replace(/[^0-9]/g, '')) / 100;
+        const itemPrice = Number(item.price.replace(/[^0-9]/g, ''));
         const itemTotal = itemPrice * item.quantity;
         
         // Apply coupon discounts
@@ -54,12 +54,12 @@ export class MercadoPagoService {
       }, 0);
 
       const subtotal = servicesTotal + storeTotal + (bookingData.travelCost || 0);
-      const paymentDiscount = bookingData.paymentMethod === 'cash' ? subtotal * 0.05 : 0;
+      const paymentDiscount = bookingData.paymentMethod === 'cash' ? Math.round(subtotal * 0.05) : 0;
       const totalAmount = subtotal - paymentDiscount;
 
       // Calculate deposit (20% of services + 50% of store items)
-      const servicesDeposit = servicesTotal * 0.2;
-      const storeDeposit = storeTotal * 0.5;
+      const servicesDeposit = Math.round(servicesTotal * 0.2);
+      const storeDeposit = Math.round(storeTotal * 0.5);
       const depositAmount = servicesDeposit + storeDeposit;
 
       // Prepare items for Mercado Pago
@@ -70,7 +70,7 @@ export class MercadoPagoService {
         items.push({
           title: `Sinal - Wild Pictures Studio (${bookingData.eventType})`,
           quantity: 1,
-          unit_price: Math.round(depositAmount * 100) / 100,
+          unit_price: depositAmount,
           currency_id: 'BRL'
         });
       }
@@ -80,7 +80,7 @@ export class MercadoPagoService {
         items.push({
           title: `Serviços Adicionais - Wild Pictures Studio`,
           quantity: 1,
-          unit_price: Math.round(totalAmount * 100) / 100,
+          unit_price: totalAmount,
           currency_id: 'BRL'
         });
       }

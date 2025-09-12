@@ -71,7 +71,7 @@ Email: ${bookingData.clientEmail}
 Telefone: ${bookingData.phone || 'Não informado'}
 Tipo: ${bookingData.eventType}
 Pacote: ${bookingData.packageTitle || 'Não especificado'}
-Valor: R$ ${bookingData.totalAmount?.toFixed(2) || '0,00'}
+Valor: R$ ${bookingData.totalAmount?.toFixed(0) || '0'}
 
 Observações: ${bookingData.message || 'Nenhuma observação adicional'}
 

@@ -91,8 +91,20 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
   const getTotalPrice = () => {
     return items.reduce((total, item) => {
-      const price = parseFloat(item.price.replace('R$ ', '').replace('.', '').replace(',', '.'));
-      return total + (price * item.quantity);
+      // item.price can be a formatted string (R$ 1.000) or a number
+      // use parsePrice utility for robust parsing
+      try {
+        // lazy import to avoid circular deps
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const { parsePrice } = require('../utils/format');
+        const price = parsePrice(item.price);
+        return total + (price * item.quantity);
+      } catch (e) {
+        // fallback
+        const raw = typeof item.price === 'number' ? item.price : Number(String(item.price).replace(/[^0-9.-]/g, ''));
+        const price = isNaN(raw) ? 0 : raw;
+        return total + (price * item.quantity);
+      }
     }, 0);
   };
 

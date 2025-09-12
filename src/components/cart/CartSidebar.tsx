@@ -2,6 +2,7 @@ import React from 'react';
 import { X, ShoppingCart, Minus, Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import { useCart } from '../../contexts/CartContext';
 import { useNavigate } from 'react-router-dom';
+import { formatPrice as formatBRL } from '../../utils/format';
 
 interface CartSidebarProps {
   isOpen: boolean;
@@ -26,7 +27,12 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
   };
 
   const formatPrice = (price: string) => {
-    return price;
+    try {
+      const num = parseFloat(price.replace(/[^0-9.,-]/g, '').replace(/\./g, '').replace(/,/g, '.'));
+      return formatBRL(isNaN(num) ? 0 : num);
+    } catch (e) {
+      return price;
+    }
   };
 
   if (!isOpen) {
@@ -93,7 +99,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
                                     <span className="w-8 text-center font-bold text-lg text-black">{item.quantity}</span>
                                     <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="w-8 h-8 rounded-full bg-white border-2 border-yellow-400 flex items-center justify-center hover:bg-yellow-50 transition-colors"><span className="text-yellow-600 font-bold text-lg leading-none">+</span></button>
                                   </div>
-                                  <p className="text-sm font-medium">Total: {formatPrice(`R$ ${(parseFloat(item.price.replace('R$ ', '').replace('.', '').replace(',', '.')) * item.quantity).toFixed(2).replace('.', ',')}`)}</p>
+                                  <p className="text-sm font-medium">Total: {formatBRL(parseFloat(item.price.replace('R$ ', '').replace('.', '').replace(',', '.')) * item.quantity)}</p>
                                 </div>
                               </div>
                             ))}
@@ -126,7 +132,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
                                     <span className="w-8 text-center font-bold text-lg text-black">{item.quantity}</span>
                                     <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="w-8 h-8 rounded-full bg-white border-2 border-yellow-400 flex items-center justify-center hover:bg-yellow-50 transition-colors"><span className="text-yellow-600 font-bold text-lg leading-none">+</span></button>
                                   </div>
-                                  <p className="text-sm font-medium">Total: {formatPrice(`R$ ${(parseFloat(item.price.replace('R$ ', '').replace('.', '').replace(',', '.')) * item.quantity).toFixed(2).replace('.', ',')}`)}</p>
+                                  <p className="text-sm font-medium">Total: {formatBRL(parseFloat(item.price.replace('R$ ', '').replace('.', '').replace(',', '.')) * item.quantity)}</p>
                                 </div>
                               </div>
                             ))}
@@ -147,7 +153,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
               <div className="flex justify-between items-center">
                 <span className="text-lg font-medium">Subtotal:</span>
                 <span className="text-xl font-bold text-primary">
-                  R$ {getTotalPrice().toFixed(2).replace('.', ',')}
+                  {formatBRL(getTotalPrice())}
                 </span>
               </div>
               
@@ -201,7 +207,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
                     <p className="text-xs text-gray-600">
                       Subtotal ({items.reduce((sum, item) => sum + item.quantity, 0)} {items.reduce((sum, item) => sum + item.quantity, 0) === 1 ? 'produto' : 'produtos'}): 
                       <span className="font-bold text-primary ml-1">
-                        R$ {getTotalPrice().toFixed(2).replace('.', ',')}
+                        {formatBRL(getTotalPrice())}
                       </span>
                     </p>
                   </div>
@@ -287,7 +293,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
                                     <span className="w-8 text-center font-bold text-lg text-black">{item.quantity}</span>
                                     <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="w-8 h-8 rounded-full bg-white border-2 border-yellow-400 flex items-center justify-center hover:bg-yellow-50 transition-colors"><span className="text-yellow-600 font-bold text-lg leading-none">+</span></button>
                                   </div>
-                                  <p className="text-sm font-bold text-primary">Total: {formatPrice(`R$ ${(parseFloat(item.price.replace('R$ ', '').replace('.', '').replace(',', '.')) * item.quantity).toFixed(2).replace('.', ',')}`)}</p>
+                                  <p className="text-sm font-bold text-primary">Total: {formatBRL(parseFloat(item.price.replace('R$ ', '').replace('.', '').replace(',', '.')) * item.quantity)}</p>
                                 </div>
                               </div>
                             ))}
@@ -323,7 +329,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
                                     <span className="w-8 text-center font-bold text-lg text-black">{item.quantity}</span>
                                     <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="w-8 h-8 rounded-full bg-white border-2 border-yellow-400 flex items-center justify-center hover:bg-yellow-50 transition-colors"><span className="text-yellow-600 font-bold text-lg leading-none">+</span></button>
                                   </div>
-                                  <p className="text-sm font-bold text-primary">Total: {formatPrice(`R$ ${(parseFloat(item.price.replace('R$ ', '').replace('.', '').replace(',', '.')) * item.quantity).toFixed(2).replace('.', ',')}`)}</p>
+                                  <p className="text-sm font-bold text-primary">Total: {formatBRL(parseFloat(item.price.replace('R$ ', '').replace('.', '').replace(',', '.')) * item.quantity)}</p>
                                 </div>
                               </div>
                             ))}
@@ -340,7 +346,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
                   <div className="flex justify-between items-center mb-3">
                     <span className="text-lg font-bold">Total:</span>
                     <span className="text-xl font-bold text-primary">
-                      R$ {getTotalPrice().toFixed(2).replace('.', ',')}
+                      {formatBRL(getTotalPrice())}
                     </span>
                   </div>
                   <button

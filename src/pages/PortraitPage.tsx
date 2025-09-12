@@ -5,6 +5,7 @@ import { sessionPackages } from '../data/sessionsData';
 import { fetchPackages, DBPackage } from '../utils/packagesService';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
+import { formatPrice } from '../utils/format';
 import PackageEditorModal from '../components/admin/PackageEditorModal';
 
 const portraitPackagesFallback = sessionPackages;
@@ -116,7 +117,7 @@ const PortraitPage = () => {
               ? dbPackages.map((p) => ({
                   id: p.id,
                   title: p.title,
-                  price: `R$ ${Number(p.price).toFixed(2).replace('.', ',')}`,
+                  price: formatPrice(Number(p.price)),
                   duration: p.duration,
                   description: p.description,
                   features: p.features || [],

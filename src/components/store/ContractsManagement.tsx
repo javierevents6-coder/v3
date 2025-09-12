@@ -161,8 +161,23 @@ const ContractsManagement = () => {
   const openView = async (c: ContractItem) => {
     setWfEditMode(false);
     setViewing(c);
-    const ensure = (c.workflow && c.workflow.length) ? c.workflow : defaultWorkflow(c);
-    setWorkflow(JSON.parse(JSON.stringify(ensure)));
+    const base = (c.workflow && c.workflow.length) ? c.workflow : [];
+
+    const normalize = (s: string) => s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().trim();
+    const merged = JSON.parse(JSON.stringify(base)) as WorkflowCategory[];
+    const findIdx = merged.findIndex(cat => normalize(cat.name).includes('entrega'));
+    const idx = findIdx >= 0 ? findIdx : merged.length;
+    if (findIdx < 0) merged.push({ id: uid(), name: 'Entrega de productos', tasks: [] });
+    const cat = merged[idx];
+    (Array.isArray(c.storeItems) ? c.storeItems : []).forEach((it: any) => {
+      const title = `Entregar ${String(it.name || '')}`;
+      if (!cat.tasks.some(t => normalize(t.title) === normalize(title))) {
+        cat.tasks.push({ id: uid(), title, done: false });
+      }
+    });
+    merged[idx] = cat;
+
+    setWorkflow(JSON.parse(JSON.stringify(merged)));
     if (templates.length === 0) await fetchTemplates();
   };
 
@@ -388,8 +403,8 @@ const ContractsManagement = () => {
                 <div><span className="text-gray-600">Método de pago:</span> <span className="font-medium">{viewing.paymentMethod || '-'}</span></div>
                 <div className="flex items-center gap-2"><span className="text-gray-600">Depósito:</span> <span className={`px-2 py-0.5 rounded text-xs ${viewing.depositPaid? 'bg-green-100 text-green-700':'bg-red-100 text-red-700'}`}>{viewing.depositPaid? 'Pagado':'No pagado'}</span></div>
                 <div className="flex items-center gap-2"><span className="text-gray-600">Restante:</span> <span className={`px-2 py-0.5 rounded text-xs ${viewing.finalPaymentPaid? 'bg-green-100 text-green-700':'bg-red-100 text-red-700'}`}>{viewing.finalPaymentPaid? 'Pagado':'No pagado'}</span></div>
-                <div><span className="text-gray-600">Total:</span> <span className="font-medium">R$ {(viewing.totalAmount ?? 0).toFixed(2)}</span></div>
-                <div><span className="text-gray-600">Deslocamento:</span> <span className="font-medium">R$ {(viewing.travelFee ?? 0).toFixed(2)}</span></div>
+                <div><span className="text-gray-600">Total:</span> <span className="font-medium">R$ {(viewing.totalAmount ?? 0).toFixed(0)}</span></div>
+                <div><span className="text-gray-600">Deslocamento:</span> <span className="font-medium">R$ {(viewing.travelFee ?? 0).toFixed(0)}</span></div>
               </div>
 
               <div>
@@ -413,8 +428,8 @@ const ContractsManagement = () => {
                           <tr key={idx} className="border-t">
                             <td className="py-1">{it.name || it.id || '—'}</td>
                             <td className="py-1">{qty}</td>
-                            <td className="py-1">R$ {price.toFixed(2)}</td>
-                            <td className="py-1">R$ {total.toFixed(2)}</td>
+                            <td className="py-1">R$ {price.toFixed(0)}</td>
+                            <td className="py-1">R$ {total.toFixed(0)}</td>
                           </tr>
                         );
                       })}
@@ -422,8 +437,8 @@ const ContractsManagement = () => {
                         <tr key={`store-${idx}`} className="border-t">
                           <td className="py-1">{it.name}</td>
                           <td className="py-1">{Number(it.quantity)}</td>
-                          <td className="py-1">R$ {Number(it.price).toFixed(2)}</td>
-                          <td className="py-1">R$ {(Number(it.price) * Number(it.quantity)).toFixed(2)}</td>
+                          <td className="py-1">R$ {Number(it.price).toFixed(0)}</td>
+                          <td className="py-1">R$ {(Number(it.price) * Number(it.quantity)).toFixed(0)}</td>
                         </tr>
                       ))}
                     </tbody>

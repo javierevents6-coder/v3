@@ -226,7 +226,7 @@ const PackagesAdminPage = () => {
                   <h3 className="text-lg font-medium mb-1">{p.title}</h3>
                   <p className="text-gray-600 text-sm mb-3 line-clamp-3">{p.description}</p>
                   <div className="flex items-center justify-between">
-                    <span className="text-xl font-playfair text-primary">R$ {Number(p.price).toFixed(2)}</span>
+                    <span className="text-xl font-playfair text-primary">R$ {Number(p.price).toFixed(0)}</span>
                     <span className="text-sm text-gray-500">/{p.duration}</span>
                   </div>
                 </div>

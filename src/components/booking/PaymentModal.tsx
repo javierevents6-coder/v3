@@ -3,6 +3,7 @@ import { X, Calendar, CreditCard, Clock, CheckCircle, AlertCircle } from 'lucide
 import { googleCalendar } from '../../utils/googleCalendar';
 import { mercadoPago } from '../../utils/mercadoPago';
 import { useFeatureFlags } from '../../contexts/FeatureFlagsContext';
+import { formatPrice } from '../../utils/format';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -21,14 +22,14 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, bookingDat
 
   const calculatePayments = () => {
     const servicesTotal = (bookingData.cartItems || []).reduce((sum: number, item: any) => {
-      const itemPrice = Number(item.price.replace(/[^0-9]/g, '')) / 100;
+      const itemPrice = Number(item.price.replace(/[^0-9]/g, ''));
       const itemTotal = itemPrice * item.quantity;
-      
+
       const coupon = bookingData[`discountCoupon_${bookingData.cartItems?.indexOf(item)}`];
       if (coupon === 'FREE' && item.id && item.id.includes('prewedding') && !item.id.includes('teaser')) {
         return sum;
       }
-      
+
       return sum + itemTotal;
     }, 0);
 
@@ -37,15 +38,15 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, bookingDat
     }, 0);
 
     const subtotal = servicesTotal + storeTotal + (bookingData.travelCost || 0);
-    const paymentDiscount = bookingData.paymentMethod === 'cash' ? subtotal * 0.05 : 0;
+    const paymentDiscount = bookingData.paymentMethod === 'cash' ? Math.round(subtotal * 0.05) : 0;
     const total = subtotal - paymentDiscount;
 
-    const servicesDeposit = servicesTotal * 0.2;
-    const storeDeposit = storeTotal * 0.5;
-    const deposit = servicesDeposit + storeDeposit;
-    const remaining = total - deposit;
+    const servicesDeposit = Math.round(servicesTotal * 0.2);
+    const storeDeposit = Math.round(storeTotal * 0.5);
+    const deposit = Math.round(servicesDeposit + storeDeposit);
+    const remaining = Math.max(0, total - deposit);
 
-    return { total, deposit, remaining };
+    return { total: Math.round(total), deposit: Math.round(deposit), remaining: Math.round(remaining) };
   };
 
   useEffect(() => {
@@ -151,15 +152,15 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, bookingDat
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span>Valor Total:</span>
-                    <span className="font-medium">R$ {total.toFixed(2).replace('.', ',')}</span>
+                    <span className="font-medium">{formatPrice(total)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Sinal (agora):</span>
-                    <span className="font-bold text-primary">R$ {deposit.toFixed(2).replace('.', ',')}</span>
+                    <span className="font-bold text-primary">{formatPrice(deposit)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Restante (no evento):</span>
-                    <span>R$ {remaining.toFixed(2).replace('.', ',')}</span>
+                    <span>{formatPrice(remaining)}</span>
                   </div>
                 </div>
               </div>
@@ -170,7 +171,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, bookingDat
                   <span className="font-medium">Método de Pagamento</span>
                 </div>
                 <p className="text-sm text-blue-700">
-                  {bookingData.paymentMethod === 'pix' && 'PIX - Pagamento instantâneo'}
+                  {bookingData.paymentMethod === 'pix' && 'PIX - Pagamento instant��neo'}
                   {bookingData.paymentMethod === 'credit' && 'Cartão de Crédito - Parcelamento disponível'}
                   {bookingData.paymentMethod === 'cash' && 'Dinheiro - 5% de desconto aplicado'}
                 </p>

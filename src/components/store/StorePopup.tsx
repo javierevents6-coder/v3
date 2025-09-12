@@ -3,6 +3,7 @@ import { X, Plus, ShoppingCart } from 'lucide-react';
 import { collection, getDocs, orderBy, query } from 'firebase/firestore';
 import { db } from '../../utils/firebaseClient';
 import { Product } from '../../types/store';
+import { formatPrice } from '../../utils/format';
 
 interface StorePopupProps {
   isOpen: boolean;
@@ -152,7 +153,7 @@ const StorePopup: React.FC<StorePopupProps> = ({ isOpen, onClose, onAddProducts 
                     <p className="text-gray-600 text-sm mb-3 line-clamp-2">{product.description}</p>
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-lg font-bold text-primary">
-                        R$ {product.price.toFixed(2)}
+                        {formatPrice(product.price)}
                       </span>
                     </div>
                     
@@ -179,7 +180,7 @@ const StorePopup: React.FC<StorePopupProps> = ({ isOpen, onClose, onAddProducts 
                       
                       {selectedProducts[product.id] && (
                         <span className="text-sm font-medium text-green-600">
-                          R$ {(product.price * selectedProducts[product.id]).toFixed(2)}
+                          {formatPrice(product.price * selectedProducts[product.id])}
                         </span>
                       )}
                     </div>
@@ -200,7 +201,7 @@ const StorePopup: React.FC<StorePopupProps> = ({ isOpen, onClose, onAddProducts 
               </div>
               {getTotalItems() > 0 && (
                 <div className="text-lg font-bold text-primary">
-                  Total: R$ {getTotalPrice().toFixed(2)}
+                  Total: {formatPrice(getTotalPrice())}
                 </div>
               )}
             </div>

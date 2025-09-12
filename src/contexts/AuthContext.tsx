@@ -49,24 +49,60 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  const refreshClaims = async (u?: User | null) => {
+    try {
+      const current = u || auth.currentUser;
+      if (!current) {
+        setIsAdmin(false);
+        return false;
+      }
+      // Try to refresh token claims; if network fails, return false and keep user signed in but not admin
+      try {
+        const idTokenResult = await current.getIdTokenResult(true);
+        const claims = idTokenResult?.claims || {};
+        setIsAdmin(Boolean(claims.admin));
+        return Boolean(claims.admin);
+      } catch (innerErr: any) {
+        console.warn('Failed to getIdTokenResult (likely network issue)', innerErr?.code || innerErr?.message || innerErr);
+        setIsAdmin(false);
+        return false;
+      }
+    } catch (e) {
+      console.warn('Failed to refresh token claims', e);
+      setIsAdmin(false);
+      return false;
+    }
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
-      
+
       if (user) {
+        // Refresh token claims
+        try {
+          await refreshClaims(user);
+        } catch (e) {
+          console.warn('refreshClaims error', e);
+        }
+
         // Fetch user profile from Firestore
         try {
           const userDoc = await getDoc(doc(db, 'users', user.uid));
           if (userDoc.exists()) {
             setUserProfile(userDoc.data() as UserProfile);
           }
-        } catch (error) {
-          console.error('Error fetching user profile:', error);
+        } catch (error: any) {
+          // Firestore network errors can happen; log and continue
+          console.error('Error fetching user profile (Firestore may be unreachable):', error?.message || error);
         }
       } else {
         setUserProfile(null);
+        setIsAdmin(false);
       }
-      
+
       setLoading(false);
     });
 
@@ -128,6 +164,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     user,
     userProfile,
     loading,
+    isAdmin,
+    refreshClaims,
     signUp,
     signIn,
     signOut,

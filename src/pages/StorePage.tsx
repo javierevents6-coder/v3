@@ -9,6 +9,7 @@ import AdminStoreDashboard from '../components/store/AdminStoreDashboard';
 import OrdersManagement from '../components/store/OrdersManagement';
 import PhotoPackagesManagement from '../components/store/PhotoPackagesManagement';
 import ContractsManagement from '../components/store/ContractsManagement';
+import { formatPrice } from '../utils/format';
 
 interface StoreProduct extends Product {
   custom_text?: string;
@@ -17,6 +18,7 @@ interface StoreProduct extends Product {
 const StorePage = () => {
   const [products, setProducts] = useState<StoreProduct[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('todos');
+  const hiddenCategories = new Set(['vestidos', 'vestido']);
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminView, setAdminView] = useState<'dashboard' | 'products' | 'orders' | 'contracts' | 'packages'>('dashboard');
   const [adminFullscreen, setAdminFullscreen] = useState(false);
@@ -114,7 +116,8 @@ const StorePage = () => {
     }
   };
 
-  const categories = ['todos', ...new Set(products.map(p => p.category))];
+  const allCategories = ['todos', ...new Set(products.map(p => p.category))];
+  const categories = allCategories.filter(c => !hiddenCategories.has(String(c||'').toLowerCase()));
 
   const categoryTranslations: { [key: string]: string } = {
     'todos': 'Todos',
@@ -125,8 +128,8 @@ const StorePage = () => {
   };
 
   const filteredProducts = selectedCategory === 'todos'
-    ? products.filter(p => (p as any).active !== false)
-    : products.filter(p => (p as any).active !== false && p.category === selectedCategory);
+    ? products.filter(p => (p as any).active !== false && !hiddenCategories.has(String(p.category||'').toLowerCase()))
+    : products.filter(p => (p as any).active !== false && !hiddenCategories.has(String(p.category||'').toLowerCase()) && p.category === selectedCategory);
 
   const addStoreItemToGlobalCart = (productId: string) => {
     const product = products.find(p => p.id === productId);
@@ -135,7 +138,7 @@ const StorePage = () => {
       id: product.id,
       type: 'store',
       name: product.name,
-      price: `R$ ${product.price.toFixed(2).replace('.', ',')}`,
+      price: formatPrice(product.price),
       duration: '',
       image: product.image_url
     });
@@ -423,7 +426,7 @@ const StorePage = () => {
                     <p className="text-gray-600 text-sm mb-4">{product.description}</p>
                     <div className="flex items-center justify-between">
                       <span className="text-xl font-playfair text-primary">
-                        R$ {product.price.toFixed(2)}
+                        {formatPrice(product.price)}
                       </span>
                       <button
                         onClick={() => addStoreItemToGlobalCart(product.id)}
